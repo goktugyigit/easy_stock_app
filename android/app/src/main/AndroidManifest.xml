@@ -1,0 +1,61 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Kamera Kullanımı İçin İzinler (Barkod/QR Tarama ve İsteğe Bağlı Fotoğraf Çekme) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
+
+    <!-- Galeriden Resim Seçmek İçin Depolama İzinleri -->
+    <!-- Android 12 (API 32) ve altı için -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+                     android:maxSdkVersion="32" />
+    <!--
+        WRITE_EXTERNAL_STORAGE genellikle image_picker için gerekli değildir,
+        çünkü genellikle uygulama kendi özel dizinine veya önbelleğe yazar.
+        Eğer özellikle harici depolamaya yazma ihtiyacınız olursa bunu ekleyebilirsiniz.
+        <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+                         android:maxSdkVersion="29" />
+    -->
+
+    <!-- Android 13 (API 33) ve üzeri için daha ayrıntılı medya izinleri -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Eğer video da seçecekseniz: -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> -->
+    <!-- Eğer ses dosyası da seçecekseniz: -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> -->
+
+
+    <application
+        android:label="easy_stock_app"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true"> <!-- Android 10 (API 29) için Scoped Storage'dan geçici muafiyet, image_picker'ın bazı eski davranışları için gerekebilir. Ancak yeni sürümler için READ_MEDIA_IMAGES daha önemlidir. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>
