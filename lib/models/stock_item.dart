@@ -1,4 +1,5 @@
 // lib/models/stock_item.dart
+
 class StockItem {
   final String id;
   String name;
@@ -14,10 +15,14 @@ class StockItem {
   String? qrCode;
   int? alertThreshold;
   int? maxStockThreshold;
-
-  // YENİ ALANLAR
-  String? warehouseId; // Ait olduğu depo ID'si
-  String? shopId;      // Ait olduğu dükkan ID'si
+  String? warehouseId;
+  String? shopId;
+  
+  // --- YENİ ALANLAR ---
+  // Sabitlenip sabitlenmediğini tutar.
+  bool isPinned;
+  // Ne zaman sabitlendiğini tutar. Bu, en son sabitleneni en üste almak için KRİTİKTİR.
+  DateTime? pinnedTimestamp;
 
   StockItem({
     required this.id,
@@ -34,8 +39,10 @@ class StockItem {
     this.qrCode,
     this.alertThreshold,
     this.maxStockThreshold,
-    this.warehouseId, // YENİ
-    this.shopId,      // YENİ
+    this.warehouseId,
+    this.shopId,
+    this.isPinned = false,
+    this.pinnedTimestamp, // Kurucu metoda eklendi.
   });
 
   Map<String, dynamic> toMap() {
@@ -54,8 +61,11 @@ class StockItem {
       'qrCode': qrCode,
       'alertThreshold': alertThreshold,
       'maxStockThreshold': maxStockThreshold,
-      'warehouseId': warehouseId, // YENİ
-      'shopId': shopId,          // YENİ
+      'warehouseId': warehouseId,
+      'shopId': shopId,
+      'isPinned': isPinned ? 1 : 0,
+      // Zaman damgasını metin olarak kaydediyoruz.
+      'pinnedTimestamp': pinnedTimestamp?.toIso8601String(),
     };
   }
 
@@ -63,7 +73,7 @@ class StockItem {
     return StockItem(
       id: map['id'] as String,
       name: map['name'] as String,
-      quantity: map['quantity'] as int,
+      quantity: (map['quantity'] as num).toInt(),
       localImagePath: map['localImagePath'] as String?,
       shelfLocation: map['shelfLocation'] as String?,
       stockCode: map['stockCode'] as String?,
@@ -75,8 +85,13 @@ class StockItem {
       qrCode: map['qrCode'] as String?,
       alertThreshold: map['alertThreshold'] as int?,
       maxStockThreshold: map['maxStockThreshold'] as int?,
-      warehouseId: map['warehouseId'] as String?, // YENİ
-      shopId: map['shopId'] as String?,          // YENİ
+      warehouseId: map['warehouseId'] as String?,
+      shopId: map['shopId'] as String?,
+      isPinned: (map['isPinned'] ?? 0) == 1,
+      // Metin olarak kaydedilen zaman damgasını tekrar DateTime nesnesine çeviriyoruz.
+      pinnedTimestamp: map['pinnedTimestamp'] != null
+          ? DateTime.tryParse(map['pinnedTimestamp'])
+          : null,
     );
   }
 }

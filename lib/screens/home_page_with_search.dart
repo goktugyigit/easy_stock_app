@@ -165,7 +165,16 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
             (item.qrCode?.toLowerCase().contains(query) ?? false);
       }).toList();
     }
-    _filteredItems.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    // ÖNCE SABİTLENENLER GELECEK ŞEKİLDE SIRALA
+    _filteredItems.sort((a, b) {
+      if (a.isPinned && !b.isPinned) {
+        return -1; // a (sabitlenmiş) önce gelir
+      } else if (!a.isPinned && b.isPinned) {
+        return 1;  // b (sabitlenmiş) önce gelir
+      }
+      // İkisi de sabitlenmiş veya sabitlenmemişse isme göre sırala
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
   }
 
   void _onSearchChanged() {
@@ -401,7 +410,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   width: totalBackgroundWidth.clamp(0.0, cardWidth + actionBackgroundOverdrag),
                                                   child: _buildActionBackgroundLayer(
                                                     currentDirection == DismissDirection.startToEnd ? AppTheme.accentColor : Colors.red.shade700,
-                                                    currentDirection == DismissDirection.startToEnd ? Icons.push_pin_outlined : Icons.delete_sweep_outlined,
+                                                    currentDirection == DismissDirection.startToEnd ? Icons.push_pin : Icons.delete_sweep_outlined, // İkonu değiştirdik
                                                     currentDirection == DismissDirection.startToEnd ? Alignment.centerLeft : Alignment.centerRight,
                                                   ),
                                                 ),
@@ -417,8 +426,14 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   
                                                   if (direction == DismissDirection.startToEnd) {
                                                     if (!mounted) return false;
-                                                    _showStyledFlushbar(currentItemContext, '"${item.name}" icin sabitleme ozelligi eklenecek.');
-                                                    confirmed = false;
+                                                    // SABİTLEME MANTIĞI
+                                                    await stockProvider.togglePinStatus(item.id);
+                                                    final updatedItem = stockProvider.items.firstWhere((i) => i.id == item.id);
+                                                    _showStyledFlushbar(
+                                                      currentItemContext, 
+                                                      updatedItem.isPinned ? '"${item.name}" sabitlendi.' : '"${item.name}" sabitlemesi kaldırıldı.'
+                                                    );
+                                                    confirmed = false; // Kartın kaybolmasını engelle
                                                   } else if (direction == DismissDirection.endToStart) {
                                                     confirmed = await _showDeleteConfirmationDialog(currentItemContext, item);
                                                     confirmed ??= false;
@@ -433,7 +448,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   if (direction == DismissDirection.endToStart) {
                                                     final originalItem = StockItem.fromMap(item.toMap());
                                                     stockProvider.deleteItem(item.id, notify: true);
-                                                    // final scaffoldCtx = listCtx; // DELETED: `listCtx` becomes invalid after dismiss.
                                                     if (mounted) {
                                                       bool isUndoPressed = false;
 
@@ -453,8 +467,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                             warehouseId: originalItem.warehouseId, shopId: originalItem.shopId,
                                                           );
                                                           
-                                                          // CHANGED: Use the state's `context` which is always valid.
-                                                          // This will pop the flushbar from the root navigator.
                                                           Navigator.of(context, rootNavigator: true).pop();
                                                         },
                                                         child: Text(
@@ -464,7 +476,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                       );
 
                                                       _showStyledFlushbar(
-                                                        context, // CHANGED: Use the state's `context`.
+                                                        context,
                                                         '"${originalItem.name}" silindi.',
                                                         mainButton: undoButton,
                                                       );
@@ -481,6 +493,27 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   } : null,
                                                 ),
                                               ),
+                                              // RAPTIYE IKONU
+                                              if (item.isPinned)
+                                                Positioned(
+                                                  top: 6,
+                                                  right: 8,
+                                                  child: Transform.rotate(
+                                                    angle: 0.4, // Ikonu hafifçe eğ
+                                                    child: Icon(
+                                                      Icons.push_pin,
+                                                      color: Colors.white.withOpacity(0.95),
+                                                      size: 20,
+                                                      shadows: const [
+                                                        BoxShadow(
+                                                          color: Colors.black54,
+                                                          blurRadius: 6.0,
+                                                          offset: Offset(1, 1),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
                                             ],
                                           ),
                                         );
