@@ -136,9 +136,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
         if (mounted) _updateCardInteractivity();
       });
     } catch (e) {
-      if (kDebugMode) print("HomePageWithSearch veri yüklenirken hata: $e");
+      if (kDebugMode) print("HomePageWithSearch veri yuklenirken hata: $e");
       if (mounted) {
-        _showStyledFlushbar(context, 'Veri yüklenirken bir hata oluştu.');
+        _showStyledFlushbar(context, 'Veri yuklenirken bir hata olustu.');
       }
     } finally {
       if (mounted) {
@@ -181,7 +181,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
 
   Future<void> _scanAndSearch() async {
     if (mounted) {
-      _showStyledFlushbar(context, "Barkod tarama özelliği eklenecek.");
+      _showStyledFlushbar(context, "Barkod tarama ozelligi eklenecek.");
     }
   }
 
@@ -200,12 +200,12 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     final result = await showDialog<bool>(
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Silme Onayı'),
-        content: Text('"${item.name}" adlı stoğu silmek istediğinizden emin misiniz?'),
+        title: const Text('Silme Onayi'),
+        content: Text('"${item.name}" adli stogu silmek istediginizden emin misiniz?'),
         actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: <Widget>[
           TextButton(
-            child: const Text('İptal'),
+            child: const Text('Iptal'),
             onPressed: () => Navigator.of(dialogCtx).pop(false),
           ),
           TextButton(
@@ -335,7 +335,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                     ),
                                     const SizedBox(height: 20),
                                     Text(
-                                      _isSearching ? 'Aramanızla eşleşen stok bulunamadı.' : 'Henüz hiç stok eklenmemiş.',
+                                      _isSearching ? 'Aramanizla eslesen stok bulunamadi.' : 'Henüz hiç stok eklenmemiş.',
                                       style: theme.textTheme.titleMedium?.copyWith(color: theme.textTheme.bodySmall?.color),
                                       textAlign: TextAlign.center,
                                     ),
@@ -417,7 +417,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   
                                                   if (direction == DismissDirection.startToEnd) {
                                                     if (!mounted) return false;
-                                                    _showStyledFlushbar(currentItemContext, '"${item.name}" için sabitleme özelliği eklenecek.');
+                                                    _showStyledFlushbar(currentItemContext, '"${item.name}" icin sabitleme ozelligi eklenecek.');
                                                     confirmed = false;
                                                   } else if (direction == DismissDirection.endToStart) {
                                                     confirmed = await _showDeleteConfirmationDialog(currentItemContext, item);
@@ -433,15 +433,14 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   if (direction == DismissDirection.endToStart) {
                                                     final originalItem = StockItem.fromMap(item.toMap());
                                                     stockProvider.deleteItem(item.id, notify: true);
-                                                    final scaffoldCtx = listCtx;
+                                                    // final scaffoldCtx = listCtx; // DELETED: `listCtx` becomes invalid after dismiss.
                                                     if (mounted) {
-                                                      // --- DÜZELTME BAŞLANGICI: "Geri Al" butonu için kilit mekanizması ---
-                                                      bool isUndoPressed = false; // 1. Her silme işlemi için yeni bir kilit oluştur.
+                                                      bool isUndoPressed = false;
 
                                                       final undoButton = TextButton(
                                                         onPressed: () {
-                                                          if (isUndoPressed) return; // 2. Eğer daha önce basıldıysa, hiçbir şey yapma.
-                                                          isUndoPressed = true; // 3. Butona basıldığını işaretle.
+                                                          if (isUndoPressed) return;
+                                                          isUndoPressed = true;
 
                                                           stockProvider.addItem(
                                                             name: originalItem.name, quantity: originalItem.quantity,
@@ -454,21 +453,18 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                             warehouseId: originalItem.warehouseId, shopId: originalItem.shopId,
                                                           );
                                                           
-                                                          // Flushbar'ı manuel olarak kapat
-                                                          final navigator = Navigator.of(scaffoldCtx);
-                                                          if (navigator.canPop()) {
-                                                            navigator.pop();
-                                                          }
+                                                          // CHANGED: Use the state's `context` which is always valid.
+                                                          // This will pop the flushbar from the root navigator.
+                                                          Navigator.of(context, rootNavigator: true).pop();
                                                         },
                                                         child: Text(
                                                           "GERİ AL",
                                                           style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
                                                         ),
                                                       );
-                                                      // --- DÜZELTME SONU ---
 
                                                       _showStyledFlushbar(
-                                                        scaffoldCtx,
+                                                        context, // CHANGED: Use the state's `context`.
                                                         '"${originalItem.name}" silindi.',
                                                         mainButton: undoButton,
                                                       );
