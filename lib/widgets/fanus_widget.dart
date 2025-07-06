@@ -30,7 +30,7 @@ class FanusPainterConfig {
   });
 
   Color getRingColor(double levelPercentage) {
-    if (levelPercentage <= 1) return Colors.grey.shade500; // Yüzde 1'in altı gri
+    if (levelPercentage < 1) return Colors.grey.shade500; // Yüzde 1'in altı gri
     final h = levelPercentage * 1.2;
     final l = 45.0 - levelPercentage * 0.18;
     return HSLColor.fromAHSL(1.0, h.clamp(0, 360), 0.80, l.clamp(0, 100) / 100.0).toColor();
@@ -268,7 +268,7 @@ class _FanusPainter extends CustomPainter {
       final valueTextStyleFill = TextStyle(color: ringColorValue, fontWeight: FontWeight.w700, fontSize: size.width * .25, fontFamily: 'Poppins');
       
       // Birim için stil
-      final unitTextStyle = TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500, fontSize: size.width * .12, fontFamily: 'Poppins');
+      final unitTextStyle = TextStyle(color: const Color.fromARGB(255, 36, 1, 1), fontWeight: FontWeight.w500, fontSize: size.width * .12, fontFamily: 'Poppins');
       
       // Miktar için painter'lar
       final valuePainter = TextPainter(text: TextSpan(text: actualStockText, style: valueTextStyleFill), textAlign: TextAlign.center, textDirection: TextDirection.ltr)..layout(maxWidth: size.width);

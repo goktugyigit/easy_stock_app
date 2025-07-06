@@ -26,6 +26,8 @@ class MainScreenWithBottomNav extends StatefulWidget {
 class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
   int _selectedIndex = 0;
 
+  // OffstageNavigator, her sekmenin kendi navigasyon geçmişini korumasını sağlar.
+  // IndexedStack ile kullanıldığında, görünür olmayan sekmeler state'lerini kaybetmez.
   static final List<Widget> _widgetOptions = <Widget>[
     _buildOffstageNavigator(_homeNavigatorKey, const HomePageWithSearch()),
     _buildOffstageNavigator(_listNavigatorKey, const ListPage()),
@@ -41,9 +43,8 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
         return MaterialPageRoute(
           settings: settings,
           builder: (BuildContext context) {
-            if (settings.name == '/') {
-              return initialPage;
-            }
+            // Her zaman başlangıç sayfasını döndürür, çünkü her sekme kendi içinde
+            // push/pop işlemlerini yönetir.
             return initialPage;
           },
         );
@@ -53,8 +54,11 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
 
   void _onItemTapped(int index) {
     if (_selectedIndex == index) {
+      // Eğer kullanıcı zaten bulunduğu sekmenin ikonuna tekrar basarsa,
+      // o sekmenin navigasyon yığınını en başa döndür.
       _navigateAndPopToRoot(index);
     } else {
+      // Farklı bir sekmeye geçiş yap.
       setState(() {
         _selectedIndex = index;
       });
@@ -69,6 +73,8 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
       _walletNavigatorKey,
       _settingsNavigatorKey,
     ];
+    // İlgili sekmenin navigator'ı pop yapabiliyorsa (yani kök sayfada değilse),
+    // ilk sayfaya kadar tüm sayfaları yığından çıkar.
     if (navigatorKeys[index].currentState != null && navigatorKeys[index].currentState!.canPop()) {
       navigatorKeys[index].currentState!.popUntil((route) => route.isFirst);
     }
@@ -79,17 +85,18 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
     final bottomNavBarEffectiveColor = AppTheme.glassNavBarBackgroundColor;
     final bottomNavBarBorderColor = AppTheme.glassNavBarBorderColor;
 
-    const double navBarHeight = 58.0;
+    const double navBarHeight = 60.0;
     const double navBarHorizontalMargin = 20.0;
     const double navBarBottomMargin = 22.0;
     final double navBarCornerRadius = navBarHeight / 2;
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return PopScope(
-      canPop: false, // Biz yöneteceğiz
-      // onPopInvoked yerine onPopInvokedWithResult kullanılıyor.
-      // İkinci parametre (result) bizim senaryomuzda kullanılmıyor ama imza için gerekli.
-      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+      canPop: false,
+      // --- DÜZELTME: 'deprecated_member_use' uyarısını gidermek için ---
+      // Sizin Flutter sürümünüzün beklediği 'onPopInvokedWithResult' kullanıldı.
+      // Bu parametre modern Flutter'da tekrar 'onPopInvoked' olarak değiştirilmiştir.
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) {
           return;
         }
@@ -106,13 +113,9 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
         if (currentNavigator != null && currentNavigator.canPop()) {
           currentNavigator.pop();
         } else {
-          // Eğer iç navigator'da geri gidilecek sayfa yoksa (kök sayfadasınız).
-          // Bu durumda uygulamanın kapanmasına izin ver.
-          // `SystemNavigator.pop()` çağırarak uygulamayı kapatabiliriz.
-          // Daha iyi bir UX için "Çıkmak için tekrar basın" gibi bir uyarı eklenebilir.
-          // Şimdilik, direkt çıkış yapalım.
-          if (mounted) { // mounted kontrolü async gap sonrası iyi bir pratiktir.
-             SystemNavigator.pop();
+          // Eğer hiçbir sekme geri gidemiyorsa, uygulamayı kapat.
+          if (mounted) {
+            SystemNavigator.pop();
           }
         }
       },
@@ -141,26 +144,16 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
                   borderRadius: BorderRadius.circular(navBarCornerRadius),
                   border: Border.all(color: bottomNavBarBorderColor, width: 0.8),
                 ),
-                child: BottomNavigationBar(
-                  items: <BottomNavigationBarItem>[
-                    BottomNavigationBarItem(icon: _buildIcon('home_icon', 0), label: ''),
-                    BottomNavigationBarItem(icon: _buildIcon('list_icon', 1), label: ''),
-                    BottomNavigationBarItem(icon: _buildIcon('warehouses_shops_icon', 2), label: ''),
-                    BottomNavigationBarItem(icon: _buildIcon('sales_icon', 3), label: ''),
-                    BottomNavigationBarItem(icon: _buildIcon('settings_icon', 4), label: ''),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    _buildNavItem(iconName: 'home_icon', index: 0),
+                    _buildNavItem(iconName: 'list_icon', index: 1),
+                    _buildNavItem(iconName: 'warehouses_shops_icon', index: 2),
+                    _buildNavItem(iconName: 'sales_icon', index: 3),
+                    _buildNavItem(iconName: 'settings_icon', index: 4),
                   ],
-                  currentIndex: _selectedIndex,
-                  onTap: _onItemTapped,
-                  type: BottomNavigationBarType.fixed,
-                  showSelectedLabels: false,
-                  showUnselectedLabels: false,
-                  backgroundColor: Colors.transparent,
-                  selectedItemColor: AppTheme.primaryColor,
-                  unselectedItemColor: const Color(0xBEFFFFFF),
-                  elevation: 0,
-                  iconSize: 24.0,
-                  selectedFontSize: 0,
-                  unselectedFontSize: 0,
                 ),
               ),
             ),
@@ -170,14 +163,28 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
     );
   }
 
-  static const String _iconPath = 'assets/nav_icons/';
-  Widget _buildIcon(String iconName, int index) {
-    return Image.asset(
-      '$_iconPath$iconName.png',
-      width: 24.0,
-      height: 24.0,
-      color: _selectedIndex == index ? AppTheme.primaryColor : const Color(0xBEFFFFFF),
-      filterQuality: FilterQuality.high,
+  // Taşma hatasını önlemek için özel olarak tasarlanmış navigasyon butonu.
+  Widget _buildNavItem({required String iconName, required int index}) {
+    const String iconPath = 'assets/nav_icons/';
+    final bool isSelected = _selectedIndex == index;
+    
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _onItemTapped(index),
+          borderRadius: BorderRadius.circular(30), // Geniş bir dokunma alanı için
+          child: Center( // İkonu dikey ve yatayda ortalar
+            child: Image.asset(
+              '$iconPath$iconName.png',
+              width: 24.0,
+              height: 24.0,
+              color: isSelected ? AppTheme.primaryColor : const Color(0xBEFFFFFF),
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

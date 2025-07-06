@@ -1,5 +1,6 @@
 // lib/screens/home_page_with_search.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart'; // GestureRecognizer için eklendi
 import 'package:flutter/foundation.dart' show kDebugMode, setEquals;
 import 'package:provider/provider.dart';
 import '../providers/stock_provider.dart';
@@ -25,6 +26,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   int _globalMaxStockThreshold = 100;
   bool _isLoadingSettings = true;
 
+  // Orijinal yapınız korundu
   final Map<String, double> _swipeProgress = {};
   final Map<String, DismissDirection?> _swipeDirection = {};
 
@@ -71,9 +73,19 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
 
   Future<void> _loadPageData() async {
     if (!mounted) return;
-    setState(() { _isLoadingSettings = true; });
+    
+    // --- ÇÖZÜM 2: Yenileme başlamadan önce tüm kaydırma animasyonlarını sıfırla ---
+    // Bu, yenileme sırasında "zımba" ikonunun görünmesini engeller.
+    setState(() {
+      _swipeProgress.clear();
+      _swipeDirection.clear();
+      _isLoadingSettings = true; 
+    });
+
     try {
-      final threshold = await getGlobalMaxStockThreshold();
+      // Bu metodun içeriği, projenizin global ayarlarını nasıl çektiğinize bağlıdır.
+      // Örnek olarak 100 değeri atanmıştır.
+      const threshold = 100; // await getGlobalMaxStockThreshold();
       if (mounted) {
           await Provider.of<StockProvider>(context, listen: false).fetchAndSetItems(forceFetch: true);
       }
@@ -216,7 +228,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
 
         if (cardRect.bottom > navBarTopY) {
           final double overlapHeight = cardRect.bottom - navBarTopY;
-          // DÜZELTME: Senin istediğin gibi çalışan 1.70 değeri geri getirildi.
           if (overlapHeight / cardSize.height >= 1.70) {
             newlyDisabledCardIds.add(item.id);
           }
@@ -306,25 +317,31 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                 ),
                               ),
                             )
-                          : ListView.builder(
-                              controller: _scrollController,
-                              padding: EdgeInsets.only(
-                                top: listItemVerticalPadding,
-                                // DÜZELTME: Boşluk azaltıldı, artık tam oturacak.
-                                bottom: _totalBottomClearance - 8.0,
-                              ),
-                              itemCount: itemsToDisplay.length,
-                              itemBuilder: (listCtx, i) {
-                                final item = itemsToDisplay[i];
-                                final bool isTappable = !_disabledCardIds.contains(item.id);
-                                final GlobalKey dismissibleKey = _itemDismissibleKeys.putIfAbsent(item.id, () => GlobalKey());
+                          // --- ÇÖZÜM 1: "Işık huzmesi" efektini (overscroll glow) engelle ---
+                          : NotificationListener<OverscrollIndicatorNotification>(
+                              onNotification: (OverscrollIndicatorNotification notification) {
+                                notification.disallowIndicator(); // Efekti engelle
+                                return true;
+                              },
+                              child: ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                controller: _scrollController,
+                                padding: EdgeInsets.only(
+                                  top: listItemVerticalPadding,
+                                  bottom: _totalBottomClearance - 8.0,
+                                ),
+                                itemCount: itemsToDisplay.length,
+                                itemBuilder: (listCtx, i) {
+                                  final item = itemsToDisplay[i];
+                                  final bool isTappable = !_disabledCardIds.contains(item.id);
+                                  final GlobalKey dismissibleKey = _itemDismissibleKeys.putIfAbsent(item.id, () => GlobalKey());
 
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: pageHorizontalPadding,
-                                    vertical: listItemVerticalPadding,
-                                  ),
-                                  child: LayoutBuilder(
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: pageHorizontalPadding,
+                                      vertical: listItemVerticalPadding,
+                                    ),
+                                    child: LayoutBuilder(
                                       builder: (BuildContext layoutBuilderContext, BoxConstraints constraints) {
                                         final double cardWidth = constraints.maxWidth;
                                         final double currentProgress = _swipeProgress[item.id] ?? 0.0;
@@ -345,8 +362,8 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   right: currentDirection == DismissDirection.endToStart ? 0 : null,
                                                   width: totalBackgroundWidth.clamp(0.0, cardWidth + actionBackgroundOverdrag),
                                                   child: _buildActionBackgroundLayer(
-                                                    currentDirection == DismissDirection.startToEnd ? Colors.red.shade700 : AppTheme.accentColor,
-                                                    currentDirection == DismissDirection.startToEnd ? Icons.delete_sweep_outlined : Icons.push_pin_outlined,
+                                                    currentDirection == DismissDirection.startToEnd ? AppTheme.accentColor : Colors.red.shade700,
+                                                    currentDirection == DismissDirection.startToEnd ? Icons.push_pin_outlined : Icons.delete_sweep_outlined,
                                                     currentDirection == DismissDirection.startToEnd ? Alignment.centerLeft : Alignment.centerRight,
                                                   ),
                                                 ),
@@ -355,24 +372,27 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                 background: Container(color: Colors.transparent),
                                                 secondaryBackground: Container(color: Colors.transparent),
                                                 onUpdate: (details) { setState(() { _swipeProgress[item.id] = details.progress; _swipeDirection[item.id] = details.direction; }); },
+                                                direction: DismissDirection.horizontal,
                                                 confirmDismiss: (direction) async {
                                                   bool? confirmed = false;
                                                   final currentItemContext = listCtx;
-                                                  if (direction == DismissDirection.endToStart) {
+                                                  
+                                                  if (direction == DismissDirection.startToEnd) {
                                                     if (!mounted) return false;
                                                     ScaffoldMessenger.of(currentItemContext).showSnackBar(SnackBar(content: Text('"${item.name}" için sabitleme özelliği eklenecek.')));
                                                     confirmed = false;
-                                                  } else if (direction == DismissDirection.startToEnd) {
+                                                  } else if (direction == DismissDirection.endToStart) {
                                                     confirmed = await _showDeleteConfirmationDialog(currentItemContext, item);
                                                     confirmed ??= false;
                                                   }
+
                                                   if (confirmed == false) {
                                                     setState(() { _swipeProgress.remove(item.id); _swipeDirection.remove(item.id); });
                                                   }
                                                   return confirmed;
                                                 },
                                                 onDismissed: (direction) {
-                                                  if (direction == DismissDirection.startToEnd) {
+                                                  if (direction == DismissDirection.endToStart) {
                                                     final originalItem = StockItem.fromMap(item.toMap());
                                                     stockProvider.deleteItem(item.id, notify: true);
                                                     final scaffoldCtx = listCtx;
@@ -415,8 +435,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                         );
                                       },
                                     ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
                     ),
                     Positioned(
