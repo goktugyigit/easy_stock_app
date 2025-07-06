@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 // DÜZELTME: Yeni paket import edildi.
-import 'package:another_flushbar/flushbar.dart'; 
+import 'package:another_flushbar/flushbar.dart';
 import '../../models/stock_item.dart';
 import '../../screens/add_edit_stock_page.dart';
 import '../../screens/create_sale_page.dart';
@@ -28,33 +28,39 @@ class _StockOptionsDialog extends StatelessWidget {
 
   // DÜZELTME: SnackBar yerine Flushbar kullanan yeni fonksiyon.
   void _showStyledFlushbar(BuildContext context, String message) {
-    const double navBarHeight = 58.0;
-    const double navBarBottomMargin = 22.0;
-    const double navBarHorizontalMargin = 20.0;
-    const double navBarTopMargin = 8.0;
+    // Navbar yüksekliğini ve boşluk hesaplaması - home_page_with_search.dart ile aynı
+    const double navBarHeight = 60.0;
+    const double navBarGap =
+        30.0; // Flushbar'ın navbar üzerinde bırakacağı boşluk
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
-
-    final double totalBottomSpace = navBarHeight + navBarBottomMargin + bottomSafeArea + navBarTopMargin;
+    final double totalBottomSpace = navBarHeight + navBarGap + bottomSafeArea;
 
     Flushbar(
-      messageText: ListTile(
-        leading: Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
-        title: Text(
-          message,
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
-        ),
-        dense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+      messageText: Row(
+        children: [
+          Icon(Icons.info_outline,
+              color: Theme.of(context).primaryColor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                  color: Colors.black87, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
       ),
       flushbarPosition: FlushbarPosition.BOTTOM,
+      forwardAnimationCurve: Curves.elasticOut,
+      reverseAnimationCurve: Curves.fastOutSlowIn,
       backgroundColor: Colors.white,
-      borderRadius: BorderRadius.circular(16.0),
+      borderRadius: BorderRadius.circular(30.0),
       margin: EdgeInsets.only(
-        // Konumlandırma: Tam olarak navbar'ın üzerine oturur.
         bottom: totalBottomSpace,
-        left: navBarHorizontalMargin,
-        right: navBarHorizontalMargin,
+        left: 20.0,
+        right: 20.0,
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       boxShadows: [
         BoxShadow(
           color: Colors.black.withOpacity(0.15),
@@ -62,8 +68,9 @@ class _StockOptionsDialog extends StatelessWidget {
           blurRadius: 10,
         ),
       ],
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
       animationDuration: const Duration(milliseconds: 400),
+      isDismissible: true,
     ).show(context);
   }
 
@@ -89,7 +96,8 @@ class _StockOptionsDialog extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).pop();
                   Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute(builder: (_) => CreateSalePage(stockItem: stockItem)),
+                    MaterialPageRoute(
+                        builder: (_) => CreateSalePage(stockItem: stockItem)),
                   );
                 },
               ),
@@ -100,7 +108,8 @@ class _StockOptionsDialog extends StatelessWidget {
                 text: 'Stok Transfer Et',
                 onTap: () {
                   Navigator.of(context).pop();
-                  _showStyledFlushbar(context, "Stok Transfer özelliği geliştirilecek.");
+                  _showStyledFlushbar(
+                      context, "Stok Transfer özelliği geliştirilecek.");
                 },
               ),
               const Divider(height: 1, color: Colors.white24),
@@ -111,7 +120,9 @@ class _StockOptionsDialog extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).pop();
                   Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute(builder: (_) => AddEditStockPage(existingItemId: stockItem.id)),
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            AddEditStockPage(existingItemId: stockItem.id)),
                   );
                 },
               ),
@@ -123,7 +134,8 @@ class _StockOptionsDialog extends StatelessWidget {
                 textColor: Colors.redAccent.shade100,
                 onTap: () {
                   Navigator.of(context).pop();
-                  _showStyledFlushbar(context, "Silme işlemi için kartı sola kaydırın.");
+                  _showStyledFlushbar(
+                      context, "Silme işlemi için kartı sola kaydırın.");
                 },
               ),
               const Divider(height: 1, color: Colors.white24),
@@ -154,7 +166,8 @@ class _StockOptionsDialog extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24), bottom: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24), bottom: Radius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: Row(

@@ -22,7 +22,8 @@ class SaleItem {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'soldStockItem': soldStockItem.toMap(), // StockItem'ı da map'e çeviriyoruz
+      'soldStockItem':
+          soldStockItem.toMap(), // StockItem'ı da map'e çeviriyoruz
       'quantitySold': quantitySold,
       'customerName': customerName,
       'saleDate': saleDate.toIso8601String(), // Tarihi string olarak sakla
@@ -32,7 +33,8 @@ class SaleItem {
   factory SaleItem.fromMap(Map<String, dynamic> map) {
     return SaleItem(
       id: map['id'] as String,
-      soldStockItem: StockItem.fromMap(map['soldStockItem'] as Map<String, dynamic>),
+      soldStockItem:
+          StockItem.fromMap(map['soldStockItem'] as Map<String, dynamic>),
       quantitySold: map['quantitySold'] as int,
       customerName: map['customerName'] as String?,
       saleDate: DateTime.parse(map['saleDate'] as String),
