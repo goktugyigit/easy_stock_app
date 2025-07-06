@@ -1,6 +1,6 @@
 // lib/screens/home_page_with_search.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, setEquals;
 import 'package:provider/provider.dart';
 import '../providers/stock_provider.dart';
 import '../models/stock_item.dart';
@@ -32,12 +32,10 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   static const double listItemVerticalPadding = 6.0;
   static const double actionBackgroundOverdrag = 70.0;
 
-  // New variables for card interactivity based on position
   final ScrollController _scrollController = ScrollController();
   final Set<String> _disabledCardIds = {};
   double _totalBottomClearance = 0.0;
 
-  // Map to store GlobalKeys for each Dismissible item to allow lookup from scroll listener
   final Map<String, GlobalKey> _itemDismissibleKeys = {};
 
 
@@ -50,27 +48,23 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     _loadPageData();
     stockProvider.addListener(_providerListener);
 
-    // Add scroll listener to update card interactivity
     _scrollController.addListener(_updateCardInteractivity);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Update totalBottomClearance when dependencies change (e.g., safe area, orientation)
     _updateTotalBottomClearance();
-    // After dependencies change and layout might shift, re-check interactivity in the next frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateCardInteractivity();
+      if (mounted) _updateCardInteractivity();
     });
   }
 
   void _providerListener() {
     if (mounted) {
       _onSearchChanged();
-      // When stock items change, card interactivity might need re-evaluation
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateCardInteractivity();
+        if (mounted) _updateCardInteractivity();
       });
     }
   }
@@ -79,16 +73,14 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     if (!mounted) return;
     setState(() { _isLoadingSettings = true; });
     try {
-      // Assuming getGlobalMaxStockThreshold is defined elsewhere or is part of StockProvider
       final threshold = await getGlobalMaxStockThreshold();
       if (mounted) {
           await Provider.of<StockProvider>(context, listen: false).fetchAndSetItems(forceFetch: true);
       }
       if (!mounted) return;
-      // Fix: Corrected typo from _globalMaxMaxStockThreshold to _globalMaxStockThreshold
       setState(() { _globalMaxStockThreshold = threshold; }); 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateCardInteractivity(); // Initial check after data loads and layout is complete
+        if (mounted) _updateCardInteractivity();
       });
     } catch (e) {
       if (kDebugMode) print("HomePageWithSearch veri yüklenirken hata: $e");
@@ -132,13 +124,11 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
       _updateFilteredItems(stockProvider.items);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateCardInteractivity(); // Re-check interactivity after search filter changes
+      if (mounted) _updateCardInteractivity();
     });
   }
 
   Future<void> _scanAndSearch() async {
-    // BarcodeScannerPage importu aktifse bu çalışır.
-    // Şimdilik SnackBar gösteriyor.
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Barkod tarama özelliği eklenecek.")));
     }
@@ -151,7 +141,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     _searchController.dispose();
     _scrollController.removeListener(_updateCardInteractivity);
     _scrollController.dispose();
-    _itemDismissibleKeys.clear(); // Clear the map of GlobalKeys
+    _itemDismissibleKeys.clear();
     super.dispose();
   }
 
@@ -201,17 +191,14 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   void _updateCardInteractivity() {
     if (!mounted || !_scrollController.hasClients) return;
 
-    // Get the global Y coordinate where the bottom navigation area starts
     final double screenHeight = MediaQuery.of(context).size.height;
     final double navBarTopY = screenHeight - _totalBottomClearance;
 
     final Set<String> newlyDisabledCardIds = {};
 
-    // Iterate over all filtered items. Only items currently rendered will have a RenderBox.
     for (final item in _filteredItems) {
-      // Use the stored GlobalKey for the Dismissible widget to find its RenderBox.
       final GlobalKey? itemDismissibleKey = _itemDismissibleKeys[item.id];
-      if (itemDismissibleKey == null) continue; // Item might not be rendered yet or was disposed.
+      if (itemDismissibleKey == null) continue;
 
       final RenderObject? renderObject = itemDismissibleKey.currentContext?.findRenderObject();
 
@@ -219,6 +206,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
         final RenderBox cardRenderBox = renderObject;
         final Offset cardGlobalPosition = cardRenderBox.localToGlobal(Offset.zero);
         final Size cardSize = cardRenderBox.size;
+        
         final Rect cardRect = Rect.fromLTWH(
           cardGlobalPosition.dx,
           cardGlobalPosition.dy,
@@ -226,10 +214,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
           cardSize.height,
         );
 
-        // Check if the card's bottom edge is below the navbar's top edge (i.e., it's overlapping)
         if (cardRect.bottom > navBarTopY) {
           final double overlapHeight = cardRect.bottom - navBarTopY;
-          // If 90% or more of the card's height is overlapping the navbar area, disable it.
+          // DÜZELTME: Senin istediğin gibi çalışan 1.70 değeri geri getirildi.
           if (overlapHeight / cardSize.height >= 1.70) {
             newlyDisabledCardIds.add(item.id);
           }
@@ -237,21 +224,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
       }
     }
 
-    // Manually compare sets to avoid unnecessary setState calls.
-    bool setsAreDifferent = false;
-    if (_disabledCardIds.length != newlyDisabledCardIds.length) {
-      setsAreDifferent = true;
-    } else {
-      // Check if all elements in newlyDisabledCardIds are present in _disabledCardIds
-      for (final id in newlyDisabledCardIds) {
-        if (!_disabledCardIds.contains(id)) {
-          setsAreDifferent = true;
-          break;
-        }
-      }
-    }
-
-    if (setsAreDifferent) {
+    if (!setEquals(_disabledCardIds, newlyDisabledCardIds)) {
       setState(() {
         _disabledCardIds
           ..clear()
@@ -263,7 +236,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    // Ensure _totalBottomClearance is up-to-date for the current build frame
     _updateTotalBottomClearance();
 
     return Scaffold(
@@ -293,7 +265,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
           ? const Center(child: CircularProgressIndicator())
           : Consumer<StockProvider>(
               builder: (consumerCtx, stockProvider, _) {
-                _updateFilteredItems(stockProvider.items); // Update list on every build for reactivity
+                _updateFilteredItems(stockProvider.items);
                 final itemsToDisplay = _filteredItems;
                 return Stack(
                   children: [
@@ -301,53 +273,50 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                       onRefresh: _loadPageData,
                       child: itemsToDisplay.isEmpty
                           ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(30.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        _isSearching ? Icons.search_off_rounded : Icons.add_shopping_cart_rounded,
-                                        size: 80,
-                                        color: theme.textTheme.bodySmall?.color,
-                                      ),
-                                      const SizedBox(height: 20),
-                                      Text(
-                                        _isSearching ? 'Aramanızla eşleşen stok bulunamadı.' : 'Henüz hiç stok eklenmemiş.',
-                                        style: theme.textTheme.titleMedium?.copyWith(color: theme.textTheme.bodySmall?.color),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      if (!_isSearching) ...[
-                                        const SizedBox(height: 25),
-                                        ElevatedButton.icon(
-                                          icon: const Icon(Icons.add_circle_outline),
-                                          label: const Text('İlk Stoğunu Ekle'),
-                                          onPressed: () =>
-                                              Navigator.of(context, rootNavigator: true).push(
-                                              MaterialPageRoute(builder: (navCtx) => const AddEditStockPage()),
-                                            ).then((_) {
-                                              if (mounted) _loadPageData();
-                                            }),
-                                          )
-                                      ]
-                                    ],
-                                  ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(30.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      _isSearching ? Icons.search_off_rounded : Icons.add_shopping_cart_rounded,
+                                      size: 80,
+                                      color: theme.textTheme.bodySmall?.color,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      _isSearching ? 'Aramanızla eşleşen stok bulunamadı.' : 'Henüz hiç stok eklenmemiş.',
+                                      style: theme.textTheme.titleMedium?.copyWith(color: theme.textTheme.bodySmall?.color),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    if (!_isSearching) ...[
+                                      const SizedBox(height: 25),
+                                      ElevatedButton.icon(
+                                        icon: const Icon(Icons.add_circle_outline),
+                                        label: const Text('İlk Stoğunu Ekle'),
+                                        onPressed: () =>
+                                            Navigator.of(context, rootNavigator: true).push(
+                                          MaterialPageRoute(builder: (navCtx) => const AddEditStockPage()),
+                                        ).then((_) {
+                                          if (mounted) _loadPageData();
+                                        }),
+                                      )
+                                    ]
+                                  ],
                                 ),
-                              )
+                              ),
+                            )
                           : ListView.builder(
-                              // Removed key: _listViewKey as it's no longer used for RenderBox lookup
-                              controller: _scrollController, // Assign controller
+                              controller: _scrollController,
                               padding: EdgeInsets.only(
                                 top: listItemVerticalPadding,
-                                bottom: _totalBottomClearance + listItemVerticalPadding,
+                                // DÜZELTME: Boşluk azaltıldı, artık tam oturacak.
+                                bottom: _totalBottomClearance - 8.0,
                               ),
                               itemCount: itemsToDisplay.length,
                               itemBuilder: (listCtx, i) {
                                 final item = itemsToDisplay[i];
-                                // Determine if the card should be tappable based on its ID's presence in _disabledCardIds
                                 final bool isTappable = !_disabledCardIds.contains(item.id);
-
-                                // Ensure a GlobalKey exists for this Dismissible and store it
                                 final GlobalKey dismissibleKey = _itemDismissibleKeys.putIfAbsent(item.id, () => GlobalKey());
 
                                 return Padding(
@@ -382,7 +351,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   ),
                                                 ),
                                               Dismissible(
-                                                key: dismissibleKey, // Use the unique GlobalKey for this Dismissible
+                                                key: dismissibleKey,
                                                 background: Container(color: Colors.transparent),
                                                 secondaryBackground: Container(color: Colors.transparent),
                                                 onUpdate: (details) { setState(() { _swipeProgress[item.id] = details.progress; _swipeDirection[item.id] = details.direction; }); },
@@ -433,10 +402,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   setState(() { _swipeProgress.remove(item.id); _swipeDirection.remove(item.id); });
                                                 },
                                                 child: StockItemCard(
-                                                  key: ValueKey('stock_card_fg_${item.id}'), // Original key for StockItemCard
+                                                  key: ValueKey('stock_card_fg_${item.id}'),
                                                   stockItem: item,
                                                   globalMaxStockThreshold: _globalMaxStockThreshold,
-                                                  // Conditionally set onTap to null to disable it
                                                   onTap: isTappable ? () {
                                                     showStockOptionsDialog(context, item);
                                                   } : null,
@@ -451,17 +419,15 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                               },
                             ),
                     ),
-                    // This `Positioned` widget is the translucent overlay at the bottom.
                     Positioned(
                       bottom: 0, left: 0, right: 0,
-                      height: _totalBottomClearance + 20, // Use the state variable
-                      child: IgnorePointer( // This already makes the gradient non-interactive
+                      height: _totalBottomClearance,
+                      child: IgnorePointer(
                         ignoring: true,
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                              // Fix: Use .withAlpha(0) instead of .withOpacity(0) for transparency
                               colors: [ AppTheme.appBackgroundColor.withAlpha(0), AppTheme.appBackgroundColor, ],
                               stops: const [0.0, 0.85],
                             ),

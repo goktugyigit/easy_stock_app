@@ -1,6 +1,7 @@
-// lib/widgets/dialogs/show_stock_options_dialog.dart
 import 'package:flutter/material.dart';
 import 'dart:ui';
+// DÜZELTME: Yeni paket import edildi.
+import 'package:another_flushbar/flushbar.dart'; 
 import '../../models/stock_item.dart';
 import '../../screens/add_edit_stock_page.dart';
 import '../../screens/create_sale_page.dart';
@@ -8,7 +9,7 @@ import '../../screens/create_sale_page.dart';
 Future<void> showStockOptionsDialog(BuildContext context, StockItem stockItem) {
   return showDialog(
     context: context,
-    barrierColor: Colors.black.withAlpha(77),
+    barrierColor: Colors.black.withAlpha(1),
     builder: (BuildContext dialogContext) {
       return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
@@ -25,86 +26,120 @@ class _StockOptionsDialog extends StatelessWidget {
 
   const _StockOptionsDialog({required this.stockItem});
 
+  // DÜZELTME: SnackBar yerine Flushbar kullanan yeni fonksiyon.
+  void _showStyledFlushbar(BuildContext context, String message) {
+    const double navBarHeight = 58.0;
+    const double navBarBottomMargin = 22.0;
+    const double navBarHorizontalMargin = 20.0;
+    const double navBarTopMargin = 8.0;
+    final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
+
+    final double totalBottomSpace = navBarHeight + navBarBottomMargin + bottomSafeArea + navBarTopMargin;
+
+    Flushbar(
+      messageText: ListTile(
+        leading: Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
+        title: Text(
+          message,
+          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+        ),
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+      ),
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      backgroundColor: Colors.white,
+      borderRadius: BorderRadius.circular(16.0),
+      margin: EdgeInsets.only(
+        // Konumlandırma: Tam olarak navbar'ın üzerine oturur.
+        bottom: totalBottomSpace,
+        left: navBarHorizontalMargin,
+        right: navBarHorizontalMargin,
+      ),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.15),
+          offset: const Offset(0, 2),
+          blurRadius: 10,
+        ),
+      ],
+      duration: const Duration(seconds: 3),
+      animationDuration: const Duration(milliseconds: 400),
+    ).show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      // DEĞİŞİKLİK: Stack widget'ı kaldırıldı, doğrudan Center ile devam ediyoruz.
-      child: Center(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24.0),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.8,
-            decoration: BoxDecoration(
-              color: Colors.grey[900]?.withAlpha(217),
-              border: Border.all(color: Colors.white.withAlpha(51)),
-              borderRadius: BorderRadius.circular(24.0),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildOptionTile(
-                  context: context,
-                  icon: Icons.point_of_sale_outlined,
-                  text: 'Satış Oluştur',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(builder: (_) => CreateSalePage(stockItem: stockItem)),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: Colors.white24),
-                _buildOptionTile(
-                  context: context,
-                  icon: Icons.swap_horiz_rounded,
-                  text: 'Stok Transfer Et',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Stok Transfer özelliği geliştirilecek.")));
-                  },
-                ),
-                const Divider(height: 1, color: Colors.white24),
-                _buildOptionTile(
-                  context: context,
-                  icon: Icons.edit_outlined,
-                  text: 'Düzenle',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(builder: (_) => AddEditStockPage(existingItemId: stockItem.id)),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: Colors.white24),
-                _buildOptionTile(
-                  context: context,
-                  icon: Icons.delete_outline_rounded,
-                  text: 'Sil',
-                  textColor: Colors.redAccent.shade100,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    // TODO: Silme işlemi için ana sayfaya callback veya provider ile bildirim yapılmalı.
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Silme işlemi tetiklenecek.")));
-                  },
-                ),
-                const Divider(height: 1, color: Colors.white24),
-                _buildOptionTile(
-                  context: context,
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  text: 'Geri',
-                  textColor: Colors.grey[400],
-                  onTap: () {
-                    Navigator.of(context).pop(); // Sadece diyaloğu kapat
-                  },
-                ),
-              ],
-            ),
+    return Center(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24.0),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          decoration: BoxDecoration(
+            color: Colors.grey[900]?.withAlpha(217),
+            border: Border.all(color: Colors.white.withAlpha(51)),
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildOptionTile(
+                context: context,
+                icon: Icons.point_of_sale_outlined,
+                text: 'Satış Oluştur',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(builder: (_) => CreateSalePage(stockItem: stockItem)),
+                  );
+                },
+              ),
+              const Divider(height: 1, color: Colors.white24),
+              _buildOptionTile(
+                context: context,
+                icon: Icons.swap_horiz_rounded,
+                text: 'Stok Transfer Et',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showStyledFlushbar(context, "Stok Transfer özelliği geliştirilecek.");
+                },
+              ),
+              const Divider(height: 1, color: Colors.white24),
+              _buildOptionTile(
+                context: context,
+                icon: Icons.edit_outlined,
+                text: 'Düzenle',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(builder: (_) => AddEditStockPage(existingItemId: stockItem.id)),
+                  );
+                },
+              ),
+              const Divider(height: 1, color: Colors.white24),
+              _buildOptionTile(
+                context: context,
+                icon: Icons.delete_outline_rounded,
+                text: 'Sil',
+                textColor: Colors.redAccent.shade100,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showStyledFlushbar(context, "Silme işlemi için kartı sola kaydırın.");
+                },
+              ),
+              const Divider(height: 1, color: Colors.white24),
+              _buildOptionTile(
+                context: context,
+                icon: Icons.arrow_back_ios_new_rounded,
+                text: 'Geri',
+                textColor: Colors.grey[400],
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
         ),
       ),
-      // DEĞİŞİKLİK: Stack'in children listesi kaldırıldı.
     );
   }
 

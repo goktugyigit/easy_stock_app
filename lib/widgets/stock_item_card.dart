@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:ui' as ui;
 import '../models/stock_item.dart';
-import './fanus_widget.dart';
+import 'fanus_widget.dart'; // Güncellenmiş FanusWidget
 import '../utils/app_theme.dart';
 
 class StockItemCard extends StatelessWidget {
@@ -19,7 +19,6 @@ class StockItemCard extends StatelessWidget {
     required this.globalMaxStockThreshold,
   });
 
-  // Bu sabit, HomePageWithSearch içindeki Dismissible arka planı ve ClipRRect için kullanılacak.
   static const double cardRadius = 29.0;
 
   Widget _buildStockImage() {
@@ -62,13 +61,13 @@ class StockItemCard extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha((0.1 * 255).round()),
+        color: Colors.white.withAlpha(25), // withOpacity(0.1)
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Icon(
         Icons.image_not_supported_outlined,
         size: size * 0.5,
-        color: Colors.white.withAlpha((0.5 * 255).round()),
+        color: Colors.white.withAlpha(128), // withOpacity(0.5)
       ),
     );
   }
@@ -81,14 +80,14 @@ class StockItemCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 1.5, bottom: 1.5),
       child: RichText(
         text: TextSpan(
-          style: TextStyle(fontSize: 11.5, color: AppTheme.secondaryTextColor.withAlpha((220)), height: 1.35),
+          style: TextStyle(fontSize: 11.5, color: AppTheme.secondaryTextColor.withAlpha(220), height: 1.35),
           children: [
-            TextSpan(text: "$label ", style: TextStyle(color: AppTheme.secondaryTextColor.withAlpha((180)), fontWeight: FontWeight.w500)),
+            TextSpan(text: "$label ", style: TextStyle(color: AppTheme.secondaryTextColor.withAlpha(180), fontWeight: FontWeight.w500)),
             TextSpan(
               text: value,
               style: TextStyle(
                 fontWeight: isBoldValue ? FontWeight.w600 : FontWeight.normal,
-                color: AppTheme.primaryTextColor.withAlpha((240))
+                color: AppTheme.primaryTextColor.withAlpha(240)
               )
             ),
           ]
@@ -101,13 +100,17 @@ class StockItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int maxStokForFanus = stockItem.maxStockThreshold ?? globalMaxStockThreshold;
+    final int maxStokForIndicator = stockItem.maxStockThreshold ?? globalMaxStockThreshold;
     final cardBgColor = AppTheme.glassCardBackgroundColor;
     final cardBorderColor = AppTheme.glassCardBorderColor;
+    
+    // Yüzdeyi hesapla, maxStok'un sıfır olma durumunu kontrol et
+    final double stockPercentage = (maxStokForIndicator > 0) 
+        ? (stockItem.quantity / maxStokForIndicator) * 100.0 
+        : (stockItem.quantity > 0 ? 100.0 : 0.0); // Eğer max stok 0 ise ve stok varsa dolu göster
 
-    // DIŞ PADDING YOK. Doğrudan ClipRRect ile başlıyor.
     return ClipRRect(
-      borderRadius: BorderRadius.circular(cardRadius), // Sınıf içindeki sabiti kullan
+      borderRadius: BorderRadius.circular(cardRadius),
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
         child: Container(
@@ -124,10 +127,10 @@ class StockItemCard extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(cardRadius),
-              highlightColor: Colors.white.withAlpha((0.08 * 255).round()),
-              splashColor: Colors.white.withAlpha((0.04 * 255).round()),
+              highlightColor: Colors.white.withAlpha(20), // withOpacity(0.08)
+              splashColor: Colors.white.withAlpha(10), // withOpacity(0.04)
               child: Padding(
-                padding: const EdgeInsets.all(12.0), // İç padding
+                padding: const EdgeInsets.all(12.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
@@ -158,9 +161,11 @@ class StockItemCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 10.0),
+                    // DÜZELTME: FanusWidget yeni parametrelerle çağrılıyor
                     FanusWidget(
-                      currentStock: stockItem.quantity,
-                      maxStock: maxStokForFanus,
+                      stockPercentage: stockPercentage,
+                      stockValueText: stockItem.quantity.toString(),
+                      unit: "ADET", // Burayı isteğe bağlı olarak dinamik hale getirebilirsin
                       size: 75.0,
                     ),
                   ],
