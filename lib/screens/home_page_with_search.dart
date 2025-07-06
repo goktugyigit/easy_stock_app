@@ -1,13 +1,13 @@
 // lib/screens/home_page_with_search.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart'; // GestureRecognizer için eklendi
+import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, setEquals;
 import 'package:provider/provider.dart';
+import 'package:another_flushbar/flushbar.dart'; // Flushbar paketi
+
 import '../providers/stock_provider.dart';
 import '../models/stock_item.dart';
 import './add_edit_stock_page.dart';
-// import '../widgets/barcode_scanner_page.dart';
-import './settings_page.dart';
 import '../widgets/stock_item_card.dart';
 import '../utils/app_theme.dart';
 import '../widgets/dialogs/show_stock_options_dialog.dart';
@@ -26,7 +26,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   int _globalMaxStockThreshold = 100;
   bool _isLoadingSettings = true;
 
-  // Orijinal yapınız korundu
   final Map<String, double> _swipeProgress = {};
   final Map<String, DismissDirection?> _swipeDirection = {};
 
@@ -49,7 +48,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     _searchController.addListener(_onSearchChanged);
     _loadPageData();
     stockProvider.addListener(_providerListener);
-
     _scrollController.addListener(_updateCardInteractivity);
   }
 
@@ -71,11 +69,56 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     }
   }
 
+  void _showStyledFlushbar(BuildContext context, String message, {Widget? mainButton}) {
+    const double navBarHeight = 60.0; 
+    const double navBarBottomMargin = 22.0;
+    const double navBarHorizontalMargin = 20.0;
+    const double navBarTopMargin = 8.0;
+    
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
+    final double bottomSafeArea = MediaQuery.of(rootContext).padding.bottom;
+
+    final double totalBottomSpace = navBarHeight + navBarBottomMargin + bottomSafeArea + navBarTopMargin;
+
+    Flushbar(
+      messageText: Row(
+        children: [
+          Icon(Icons.info_outline, color: Theme.of(context).primaryColor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+      mainButton: mainButton,
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      backgroundColor: Colors.white,
+      borderRadius: BorderRadius.circular(30.0),
+      margin: EdgeInsets.only(
+        bottom: totalBottomSpace,
+        left: navBarHorizontalMargin,
+        right: navBarHorizontalMargin,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.15),
+          offset: const Offset(0, 2),
+          blurRadius: 10,
+        ),
+      ],
+      duration: const Duration(seconds: 4),
+      animationDuration: const Duration(milliseconds: 400),
+      isDismissible: true,
+    ).show(rootContext);
+  }
+
   Future<void> _loadPageData() async {
     if (!mounted) return;
     
-    // --- ÇÖZÜM 2: Yenileme başlamadan önce tüm kaydırma animasyonlarını sıfırla ---
-    // Bu, yenileme sırasında "zımba" ikonunun görünmesini engeller.
     setState(() {
       _swipeProgress.clear();
       _swipeDirection.clear();
@@ -83,9 +126,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     });
 
     try {
-      // Bu metodun içeriği, projenizin global ayarlarını nasıl çektiğinize bağlıdır.
-      // Örnek olarak 100 değeri atanmıştır.
-      const threshold = 100; // await getGlobalMaxStockThreshold();
+      const threshold = 100;
       if (mounted) {
           await Provider.of<StockProvider>(context, listen: false).fetchAndSetItems(forceFetch: true);
       }
@@ -97,9 +138,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     } catch (e) {
       if (kDebugMode) print("HomePageWithSearch veri yüklenirken hata: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Veri yüklenirken bir hata oluştu: ${e.toString()}')),
-        );
+        _showStyledFlushbar(context, 'Veri yüklenirken bir hata oluştu.');
       }
     } finally {
       if (mounted) {
@@ -142,7 +181,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
 
   Future<void> _scanAndSearch() async {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Barkod tarama özelliği eklenecek.")));
+      _showStyledFlushbar(context, "Barkod tarama özelliği eklenecek.");
     }
   }
 
@@ -193,7 +232,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   }
 
   void _updateTotalBottomClearance() {
-    const double navBarHeight = 58.0;
+    const double navBarHeight = 60.0;
     const double navBarBottomMargin = 22.0;
     const double navBarTopMargin = 8.0;
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
@@ -317,10 +356,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                 ),
                               ),
                             )
-                          // --- ÇÖZÜM 1: "Işık huzmesi" efektini (overscroll glow) engelle ---
                           : NotificationListener<OverscrollIndicatorNotification>(
                               onNotification: (OverscrollIndicatorNotification notification) {
-                                notification.disallowIndicator(); // Efekti engelle
+                                notification.disallowIndicator();
                                 return true;
                               },
                               child: ListView.builder(
@@ -379,7 +417,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                   
                                                   if (direction == DismissDirection.startToEnd) {
                                                     if (!mounted) return false;
-                                                    ScaffoldMessenger.of(currentItemContext).showSnackBar(SnackBar(content: Text('"${item.name}" için sabitleme özelliği eklenecek.')));
+                                                    _showStyledFlushbar(currentItemContext, '"${item.name}" için sabitleme özelliği eklenecek.');
                                                     confirmed = false;
                                                   } else if (direction == DismissDirection.endToStart) {
                                                     confirmed = await _showDeleteConfirmationDialog(currentItemContext, item);
@@ -397,25 +435,42 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                     stockProvider.deleteItem(item.id, notify: true);
                                                     final scaffoldCtx = listCtx;
                                                     if (mounted) {
-                                                      ScaffoldMessenger.of(scaffoldCtx).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text('"${originalItem.name}" silindi.'),
-                                                          action: SnackBarAction(
-                                                            label: "GERİ AL",
-                                                            onPressed: () {
-                                                              stockProvider.addItem(
-                                                                name: originalItem.name, quantity: originalItem.quantity,
-                                                                barcode: originalItem.barcode, qrCode: originalItem.qrCode,
-                                                                shelfLocation: originalItem.shelfLocation, stockCode: originalItem.stockCode,
-                                                                category: originalItem.category, localImagePath: originalItem.localImagePath,
-                                                                alertThreshold: originalItem.alertThreshold, brand: originalItem.brand,
-                                                                supplier: originalItem.supplier, invoiceNumber: originalItem.invoiceNumber,
-                                                                maxStockThreshold: originalItem.maxStockThreshold,
-                                                                warehouseId: originalItem.warehouseId, shopId: originalItem.shopId,
-                                                              );
-                                                            },
-                                                          ),
+                                                      // --- DÜZELTME BAŞLANGICI: "Geri Al" butonu için kilit mekanizması ---
+                                                      bool isUndoPressed = false; // 1. Her silme işlemi için yeni bir kilit oluştur.
+
+                                                      final undoButton = TextButton(
+                                                        onPressed: () {
+                                                          if (isUndoPressed) return; // 2. Eğer daha önce basıldıysa, hiçbir şey yapma.
+                                                          isUndoPressed = true; // 3. Butona basıldığını işaretle.
+
+                                                          stockProvider.addItem(
+                                                            name: originalItem.name, quantity: originalItem.quantity,
+                                                            barcode: originalItem.barcode, qrCode: originalItem.qrCode,
+                                                            shelfLocation: originalItem.shelfLocation, stockCode: originalItem.stockCode,
+                                                            category: originalItem.category, localImagePath: originalItem.localImagePath,
+                                                            alertThreshold: originalItem.alertThreshold, brand: originalItem.brand,
+                                                            supplier: originalItem.supplier, invoiceNumber: originalItem.invoiceNumber,
+                                                            maxStockThreshold: originalItem.maxStockThreshold,
+                                                            warehouseId: originalItem.warehouseId, shopId: originalItem.shopId,
+                                                          );
+                                                          
+                                                          // Flushbar'ı manuel olarak kapat
+                                                          final navigator = Navigator.of(scaffoldCtx);
+                                                          if (navigator.canPop()) {
+                                                            navigator.pop();
+                                                          }
+                                                        },
+                                                        child: Text(
+                                                          "GERİ AL",
+                                                          style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
                                                         ),
+                                                      );
+                                                      // --- DÜZELTME SONU ---
+
+                                                      _showStyledFlushbar(
+                                                        scaffoldCtx,
+                                                        '"${originalItem.name}" silindi.',
+                                                        mainButton: undoButton,
                                                       );
                                                     }
                                                   }
