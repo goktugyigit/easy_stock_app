@@ -85,12 +85,15 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
       return;
     }
     _formKey.currentState!.save();
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
 
     final shopProvider = Provider.of<ShopProvider>(context, listen: false);
-    
+
     final name = _nameController.text;
-    final address = _addressController.text.isEmpty ? null : _addressController.text;
+    final address =
+        _addressController.text.isEmpty ? null : _addressController.text;
     final String? imagePath = _pickedImageFile?.path;
 
     try {
@@ -121,14 +124,21 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Hata Oluştu!'),
-            content: Text('Dükkan kaydedilirken bir sorun oluştu: ${error.toString()}'),
-            actions: [TextButton(child: const Text('Tamam'), onPressed: () => Navigator.of(ctx).pop())],
+            content: Text(
+                'Dükkan kaydedilirken bir sorun oluştu: ${error.toString()}'),
+            actions: [
+              TextButton(
+                  child: const Text('Tamam'),
+                  onPressed: () => Navigator.of(ctx).pop())
+            ],
           ),
         );
       }
     } finally {
       if (mounted) {
-        setState(() { _isLoading = false; });
+        setState(() {
+          _isLoading = false;
+        });
         Navigator.of(context).pop();
       }
     }
@@ -148,18 +158,21 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
         children: [
           Icon(Icons.add_a_photo_outlined, size: 45, color: Colors.grey[700]),
           const SizedBox(height: 8),
-          Text('Dükkan Resmi Seç', style: TextStyle(color: Colors.grey[800], fontSize: 13)),
+          Text('Dükkan Resmi Seç',
+              style: TextStyle(color: Colors.grey[800], fontSize: 13)),
         ],
       );
     }
     if (kIsWeb) {
-      return Image.network(_pickedImageFile!.path, fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, color: Colors.grey))
-      );
+      return Image.network(_pickedImageFile!.path,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(Icons.broken_image, color: Colors.grey)));
     } else {
-      return Image.file(File(_pickedImageFile!.path), fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, color: Colors.grey))
-      );
+      return Image.file(File(_pickedImageFile!.path),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(Icons.broken_image, color: Colors.grey)));
     }
   }
 
@@ -167,7 +180,9 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.existingItemId == null ? 'Yeni Dükkan Ekle' : 'Dükkanı Düzenle'),
+        title: Text(widget.existingItemId == null
+            ? 'Yeni Dükkan Ekle'
+            : 'Dükkanı Düzenle'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.save_alt_outlined),
@@ -190,11 +205,13 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
                         child: Container(
                           width: 130,
                           height: 130,
-                          margin: const EdgeInsets.only(bottom: 20.0, top: 10.0),
+                          margin:
+                              const EdgeInsets.only(bottom: 20.0, top: 10.0),
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade400, width: 1.5),
+                            border: Border.all(
+                                color: Colors.grey.shade400, width: 1.5),
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.5),
@@ -205,9 +222,13 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
                     ),
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Dükkan Adı (*)', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: 'Dükkan Adı (*)',
+                          border: OutlineInputBorder()),
                       textInputAction: TextInputAction.next,
-                      validator: (v) => (v == null || v.isEmpty) ? 'Dükkan adı zorunludur.' : null,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Dükkan adı zorunludur.'
+                          : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(

@@ -20,7 +20,9 @@ final GlobalKey<NavigatorState> _settingsNavigatorKey =
     GlobalKey<NavigatorState>();
 
 class MainScreenWithBottomNav extends StatefulWidget {
-  const MainScreenWithBottomNav({super.key});
+  final int initialSelectedIndex;
+
+  const MainScreenWithBottomNav({super.key, this.initialSelectedIndex = 0});
 
   @override
   State<MainScreenWithBottomNav> createState() =>
@@ -29,7 +31,7 @@ class MainScreenWithBottomNav extends StatefulWidget {
 
 class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
     with TickerProviderStateMixin {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   late List<AnimationController> _animationControllers;
   late List<Animation<double>> _scaleAnimations;
   late List<Animation<double>> _pulseAnimations;
@@ -69,6 +71,9 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
   void initState() {
     super.initState();
 
+    // Başlangıç index'ini widget'tan al
+    _selectedIndex = widget.initialSelectedIndex;
+
     // Her buton için animasyon controller'ları oluştur
     _animationControllers = List.generate(
       _navItems.length,
@@ -97,7 +102,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
         .toList();
 
     // İlk seçili buton animasyonunu başlat
-    _animationControllers[0].forward();
+    _animationControllers[widget.initialSelectedIndex].forward();
   }
 
   @override
