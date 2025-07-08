@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+THIS SHOULD BE A LINTER ERRORimport 'package:flutter/material.dart';
 import 'dart:ui';
 // DÜZELTME: Yeni paket import edildi.
 import 'package:another_flushbar/flushbar.dart';

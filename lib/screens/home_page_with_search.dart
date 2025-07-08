@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR// lib/screens/home_page_with_search.dart
+// lib/screens/home_page_with_search.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, setEquals;
@@ -12,6 +12,7 @@ import '../widgets/stock_item_card.dart';
 import '../utils/app_theme.dart';
 import '../widgets/dialogs/show_stock_options_dialog.dart';
 import '../widgets/corporate_header.dart';
+import '../utils/flushbar_helper.dart';
 
 class HomePageWithSearch extends StatefulWidget {
   const HomePageWithSearch({super.key});
@@ -146,9 +147,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
       });
     } catch (e) {
       if (kDebugMode) print("HomePageWithSearch veri yuklenirken hata: $e");
-      if (mounted) {
-        _showStyledFlushbar(context, 'Veri yuklenirken bir hata olustu.');
-      }
+      FlushbarHelper.showOptimizedFlushbar(context, 'Veri yüklenirken bir hata oluştu.', type: FlushbarType.error);
     } finally {
       if (mounted) {
         setState(() {
