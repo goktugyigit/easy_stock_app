@@ -13,6 +13,7 @@ import '../widgets/stock_item_card.dart';
 import '../widgets/corporate_header.dart';
 import './add_edit_stock_page.dart';
 import './settings_page.dart';
+import '../utils/flushbar_helper.dart';
 
 class StockListPage extends StatefulWidget {
   const StockListPage({super.key});
@@ -54,9 +55,7 @@ class _StockListPageState extends State<StockListPage> {
       }
     } catch (e) {
       if (kDebugMode) print("StockListPage veri yüklenirken hata: $e");
-      if (mounted) {
-        _showStyledFlushbar(context, 'Veri yüklenirken bir hata oluştu.');
-      }
+      FlushbarHelper.showOptimizedFlushbar(context, 'Veri yüklenirken bir hata oluştu.', type: FlushbarType.error);
     } finally {
       if (mounted) {
         setState(() {

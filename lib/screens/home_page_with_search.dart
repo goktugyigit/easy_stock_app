@@ -1,4 +1,4 @@
-// lib/screens/home_page_with_search.dart
+THIS SHOULD BE A LINTER ERROR// lib/screens/home_page_with_search.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, setEquals;
