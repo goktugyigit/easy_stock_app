@@ -29,11 +29,13 @@ class _StockOptionsDialog extends StatelessWidget {
   // DÜZELTME: SnackBar yerine Flushbar kullanan yeni fonksiyon.
   void _showStyledFlushbar(BuildContext context, String message) {
     // Navbar yüksekliğini ve boşluk hesaplaması - home_page_with_search.dart ile aynı
-    const double navBarHeight = 60.0;
+    const double navBarHeight = 70.0; // Modern navbar yüksekliği - güncel
+    const double navBarBottomMargin = 25.0; // Modern navbar alt boşluğu
     const double navBarGap =
-        30.0; // Flushbar'ın navbar üzerinde bırakacağı boşluk
+        10.0; // Flushbar'ın navbar üzerinde bırakacağı boşluk - home_page ile aynı
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
-    final double totalBottomSpace = navBarHeight + navBarGap + bottomSafeArea;
+    final double totalBottomSpace =
+        navBarHeight + navBarBottomMargin + navBarGap + bottomSafeArea;
 
     Flushbar(
       messageText: Row(

@@ -272,13 +272,15 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   }
 
   void _updateTotalBottomClearance() {
-    const double navBarHeight = 60.0;
+    const double navBarHeight = 70.0; // Modern navbar yüksekliği - güncel
+    const double navBarBottomMargin = 25.0; // Modern navbar alt boşluğu
     const double navBarGap =
         10.0; // Flushbar'ın navbar üzerinde bırakacağı boşluk
 
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
 
-    final double totalBottomSpace = navBarHeight + navBarGap + bottomSafeArea;
+    final double totalBottomSpace =
+        navBarHeight + navBarBottomMargin + navBarGap + bottomSafeArea;
     _totalBottomClearance = totalBottomSpace;
   }
 

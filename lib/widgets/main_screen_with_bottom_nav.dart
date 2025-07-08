@@ -1,7 +1,7 @@
 // lib/widgets/main_screen_with_bottom_nav.dart
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
-import 'package:flutter/services.dart'; // SystemNavigator.pop için eklendi
+import 'package:flutter/services.dart';
 import '../screens/home_page_with_search.dart';
 import '../screens/list_page.dart';
 import '../screens/warehouses_shops_page.dart';
@@ -12,56 +12,115 @@ import '../utils/app_theme.dart';
 // Her bir sekme için Navigator anahtarları
 final GlobalKey<NavigatorState> _homeNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _listNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _warehousesNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _walletNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _settingsNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _warehousesNavigatorKey =
+    GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _walletNavigatorKey =
+    GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _settingsNavigatorKey =
+    GlobalKey<NavigatorState>();
 
 class MainScreenWithBottomNav extends StatefulWidget {
   const MainScreenWithBottomNav({super.key});
 
   @override
-  State<MainScreenWithBottomNav> createState() => _MainScreenWithBottomNavState();
+  State<MainScreenWithBottomNav> createState() =>
+      _MainScreenWithBottomNavState();
 }
 
-class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
+class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
+    with TickerProviderStateMixin {
   int _selectedIndex = 0;
+  late List<AnimationController> _animationControllers;
+  late List<Animation<double>> _scaleAnimations;
+  late List<Animation<double>> _pulseAnimations;
 
-  // OffstageNavigator, her sekmenin kendi navigasyon geçmişini korumasını sağlar.
-  // IndexedStack ile kullanıldığında, görünür olmayan sekmeler state'lerini kaybetmez.
+  // Modern navbar data - o beğendiğin iconlar
+  final List<NavItem> _navItems = [
+    NavItem(icon: Icons.home_rounded, label: 'Ana Sayfa'),
+    NavItem(icon: Icons.dashboard_rounded, label: 'İşlemler'),
+    NavItem(icon: Icons.store_rounded, label: 'Yerler'),
+    NavItem(icon: Icons.point_of_sale_rounded, label: 'Satışlar'),
+    NavItem(icon: Icons.settings_rounded, label: 'Ayarlar'),
+  ];
+
   static final List<Widget> _widgetOptions = <Widget>[
     _buildOffstageNavigator(_homeNavigatorKey, const HomePageWithSearch()),
     _buildOffstageNavigator(_listNavigatorKey, const ListPage()),
-    _buildOffstageNavigator(_warehousesNavigatorKey, const WarehousesShopsPage()),
+    _buildOffstageNavigator(
+        _warehousesNavigatorKey, const WarehousesShopsPage()),
     _buildOffstageNavigator(_walletNavigatorKey, const WalletPage()),
     _buildOffstageNavigator(_settingsNavigatorKey, const HomeSettingsPage()),
   ];
 
-  static Widget _buildOffstageNavigator(GlobalKey<NavigatorState> key, Widget initialPage) {
+  static Widget _buildOffstageNavigator(
+      GlobalKey<NavigatorState> key, Widget initialPage) {
     return Navigator(
       key: key,
       onGenerateRoute: (RouteSettings settings) {
         return MaterialPageRoute(
           settings: settings,
-          builder: (BuildContext context) {
-            // Her zaman başlangıç sayfasını döndürür, çünkü her sekme kendi içinde
-            // push/pop işlemlerini yönetir.
-            return initialPage;
-          },
+          builder: (BuildContext context) => initialPage,
         );
       },
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Her buton için animasyon controller'ları oluştur
+    _animationControllers = List.generate(
+      _navItems.length,
+      (index) => AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 200),
+      ),
+    );
+
+    // Scale animasyonları - o havalı büyüme efekti
+    _scaleAnimations = _animationControllers
+        .map(
+          (controller) => Tween<double>(begin: 1.0, end: 1.2).animate(
+            CurvedAnimation(parent: controller, curve: Curves.elasticOut),
+          ),
+        )
+        .toList();
+
+    // Pulse animasyonları - o dairesel dalga efekti
+    _pulseAnimations = _animationControllers
+        .map(
+          (controller) => Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+          ),
+        )
+        .toList();
+
+    // İlk seçili buton animasyonunu başlat
+    _animationControllers[0].forward();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _animationControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     if (_selectedIndex == index) {
-      // Eğer kullanıcı zaten bulunduğu sekmenin ikonuna tekrar basarsa,
-      // o sekmenin navigasyon yığınını en başa döndür.
       _navigateAndPopToRoot(index);
     } else {
-      // Farklı bir sekmeye geçiş yap.
+      // Eski seçili buton animasyonunu durdur
+      _animationControllers[_selectedIndex].reverse();
+
       setState(() {
         _selectedIndex = index;
       });
+
+      // Yeni seçili buton animasyonunu başlat
+      _animationControllers[index].forward();
     }
   }
 
@@ -73,33 +132,26 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
       _walletNavigatorKey,
       _settingsNavigatorKey,
     ];
-    // İlgili sekmenin navigator'ı pop yapabiliyorsa (yani kök sayfada değilse),
-    // ilk sayfaya kadar tüm sayfaları yığından çıkar.
-    if (navigatorKeys[index].currentState != null && navigatorKeys[index].currentState!.canPop()) {
+
+    if (navigatorKeys[index].currentState != null &&
+        navigatorKeys[index].currentState!.canPop()) {
       navigatorKeys[index].currentState!.popUntil((route) => route.isFirst);
     }
   }
 
+  // Navbar yüksekliği - o beğendiğin boyut
+  static const double navBarHeight = 70.0;
+  static const double navBarBottomMargin = 25.0;
+
   @override
   Widget build(BuildContext context) {
-    final bottomNavBarEffectiveColor = AppTheme.glassNavBarBackgroundColor;
-    final bottomNavBarBorderColor = AppTheme.glassNavBarBorderColor;
-
-    const double navBarHeight = 60.0;
-    const double navBarHorizontalMargin = 20.0;
-    const double navBarBottomMargin = 22.0;
-    final double navBarCornerRadius = navBarHeight / 2;
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
+    const double navBarHorizontalMargin = 20.0;
 
     return PopScope(
       canPop: false,
-      // --- DÜZELTME: 'deprecated_member_use' uyarısını gidermek için ---
-      // Sizin Flutter sürümünüzün beklediği 'onPopInvokedWithResult' kullanıldı.
-      // Bu parametre modern Flutter'da tekrar 'onPopInvoked' olarak değiştirilmiştir.
       onPopInvokedWithResult: (bool didPop, dynamic result) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
 
         final List<GlobalKey<NavigatorState>> navigatorKeys = [
           _homeNavigatorKey,
@@ -108,12 +160,12 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
           _walletNavigatorKey,
           _settingsNavigatorKey,
         ];
-        final NavigatorState? currentNavigator = navigatorKeys[_selectedIndex].currentState;
+        final NavigatorState? currentNavigator =
+            navigatorKeys[_selectedIndex].currentState;
 
         if (currentNavigator != null && currentNavigator.canPop()) {
           currentNavigator.pop();
         } else {
-          // Eğer hiçbir sekme geri gidemiyorsa, uygulamayı kapat.
           if (mounted) {
             SystemNavigator.pop();
           }
@@ -134,26 +186,45 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
             top: 8.0,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(navBarCornerRadius),
+            borderRadius: BorderRadius.circular(35.0),
             child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+              filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: Container(
                 height: navBarHeight,
                 decoration: BoxDecoration(
-                  color: bottomNavBarEffectiveColor,
-                  borderRadius: BorderRadius.circular(navBarCornerRadius),
-                  border: Border.all(color: bottomNavBarBorderColor, width: 0.8),
+                  // O beğendiğin modern koyu gradient!
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.7),
+                      Colors.grey[900]!.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(35.0),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      blurRadius: 25,
+                      offset: const Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      blurRadius: 15,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    _buildNavItem(iconName: 'home_icon', index: 0),
-                    _buildNavItem(iconName: 'list_icon', index: 1),
-                    _buildNavItem(iconName: 'warehouses_shops_icon', index: 2),
-                    _buildNavItem(iconName: 'sales_icon', index: 3),
-                    _buildNavItem(iconName: 'settings_icon', index: 4),
-                  ],
+                  children: List.generate(
+                    _navItems.length,
+                    (index) => _buildModernNavButton(index),
+                  ),
                 ),
               ),
             ),
@@ -163,28 +234,107 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav> {
     );
   }
 
-  // Taşma hatasını önlemek için özel olarak tasarlanmış navigasyon butonu.
-  Widget _buildNavItem({required String iconName, required int index}) {
-    const String iconPath = 'assets/nav_icons/';
+  Widget _buildModernNavButton(int index) {
     final bool isSelected = _selectedIndex == index;
-    
+    final NavItem item = _navItems[index];
+
     return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _onItemTapped(index),
-          borderRadius: BorderRadius.circular(30), // Geniş bir dokunma alanı için
-          child: Center( // İkonu dikey ve yatayda ortalar
-            child: Image.asset(
-              '$iconPath$iconName.png',
-              width: 24.0,
-              height: 24.0,
-              color: isSelected ? AppTheme.primaryColor : const Color(0xBEFFFFFF),
-              filterQuality: FilterQuality.high,
-            ),
-          ),
+      child: GestureDetector(
+        onTap: () => _onItemTapped(index),
+        onTapDown: (_) {
+          // O havalı basma efekti
+          if (!isSelected) {
+            _animationControllers[index].forward().then((_) {
+              _animationControllers[index].reverse();
+            });
+          }
+        },
+        child: AnimatedBuilder(
+          animation: Listenable.merge([
+            _scaleAnimations[index],
+            _pulseAnimations[index],
+          ]),
+          builder: (context, child) {
+            return Container(
+              height: navBarHeight,
+              child: Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Seçili durum için pulse efekti - o beğendiğin dalga!
+                    if (isSelected)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 45 + (_pulseAnimations[index].value * 10),
+                        height: 45 + (_pulseAnimations[index].value * 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+
+                    // Ana icon container - o şık tasarım
+                    Transform.scale(
+                      scale: _scaleAnimations[index].value,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(
+                                  color: AppTheme.primaryColor
+                                      .withValues(alpha: 0.3),
+                                  width: 1.5,
+                                )
+                              : null,
+                        ),
+                        child: item.assetPath != null
+                            ? Image.asset(
+                                item.assetPath!,
+                                // 40x40px PNG için Flutter icon boyutuna uyumlu scale
+                                width: isSelected
+                                    ? 16
+                                    : 15, // Daha küçük - Flutter icon'lar ile uyumlu
+                                height: isSelected ? 16 : 15,
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : Colors.white.withValues(alpha: 0.7),
+                                filterQuality: FilterQuality.high,
+                              )
+                            : Icon(
+                                item.icon!,
+                                size: isSelected ? 26 : 24,
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : Colors.white.withValues(alpha: 0.7),
+                              ),
+                      ),
+                    ),
+
+                    // İç daire kaldırıldı - sadece dış pulse efekti kalacak
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
+}
+
+// Navbar item data class - hem icon hem asset desteği
+class NavItem {
+  final IconData? icon;
+  final String? assetPath;
+  final String label;
+
+  NavItem({this.icon, this.assetPath, required this.label})
+      : assert(icon != null || assetPath != null,
+            'Either icon or assetPath must be provided');
 }
