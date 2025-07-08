@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR// lib/screens/settings_page.dart
+// lib/screens/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // iOS refresh için
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter için
@@ -141,7 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       children: [
                         const Spacer(),
                         IconButton(
-                          icon: const Icon(Icons.save_alt_outlined, size: 28),
+                          icon: ImageIcon(AssetImage('assets/nav_icons/sales_icon.png'), size: 28),
                           tooltip: 'Ayarları Kaydet',
                           onPressed: _isLoading ? null : _saveSettings,
                           color: Theme.of(context).primaryColor,
