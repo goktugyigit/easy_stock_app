@@ -4,26 +4,31 @@ import 'dart:ui' as ui; // BackdropFilter için
 import '../utils/app_theme.dart'; // Renkler için
 
 class ActionCard extends StatelessWidget {
-  final String imagePath;
+  final String? imagePath; // Opsiyonel hale getirildi
+  final IconData? icon; // Yeni eklendi
   final String title;
   final VoidCallback onTap;
   final double cardRadius;
   final Color cardBackgroundColor;
   final Color cardBorderColor;
   final double iconSize;
-  final Color iconColor; // Bu parametre şu anda Image.asset için doğrudan kullanılmıyor
+  final Color iconColor;
 
   const ActionCard({
     super.key,
-    required this.imagePath,
+    this.imagePath,
+    this.icon,
     required this.title,
     required this.onTap,
     this.cardRadius = 29.0, // StockItemCard ile aynı
-    this.cardBackgroundColor = const Color(0x3300AFFF), // Açık mavi, yarı saydam
-    this.cardBorderColor = const Color(0x4D00AFFF), // Biraz daha belirgin border
+    this.cardBackgroundColor =
+        const Color(0x3300AFFF), // Açık mavi, yarı saydam
+    this.cardBorderColor =
+        const Color(0x4D00AFFF), // Biraz daha belirgin border
     this.iconSize = 48.0, // Resim/İkon boyutu
-    this.iconColor = Colors.white, // Eğer Icon widget kullansaydık varsayılan renk
-  });
+    this.iconColor = Colors.white, // İkon rengi
+  }) : assert(imagePath != null || icon != null,
+            'Either imagePath or icon must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +52,26 @@ class ActionCard extends StatelessWidget {
               child: InkWell(
                 onTap: onTap,
                 borderRadius: BorderRadius.circular(cardRadius),
-                highlightColor: AppTheme.primaryTextColor.withAlpha(30), // AppTheme'den alabiliriz
-                splashColor: AppTheme.primaryTextColor.withAlpha(20),  // AppTheme'den alabiliriz
+                highlightColor: AppTheme.primaryTextColor.withAlpha(30),
+                splashColor: AppTheme.primaryTextColor.withAlpha(20),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 20.0),
                   child: Row(
                     children: <Widget>[
-                      Image.asset(
-                        imagePath,
-                        width: iconSize,
-                        height: iconSize,
-                        // color: iconColor, // Eğer PNG'nin rengini değiştirmek istersen ve PNG tek renkliyse
-                      ),
+                      // İkon veya resim gösterimi
+                      if (icon != null)
+                        Icon(
+                          icon,
+                          size: iconSize,
+                          color: iconColor,
+                        )
+                      else if (imagePath != null)
+                        Image.asset(
+                          imagePath!,
+                          width: iconSize,
+                          height: iconSize,
+                        ),
                       const SizedBox(width: 16.0),
                       Expanded(
                         child: Text(
@@ -71,10 +84,9 @@ class ActionCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      // DÜZELTME: Icon widget'ından const kaldırıldı
                       Icon(
                         Icons.arrow_forward_ios_rounded,
-                        color: AppTheme.secondaryTextColor, // Bu static bir renk, const değil
+                        color: AppTheme.secondaryTextColor,
                         size: 18,
                       )
                     ],

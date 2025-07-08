@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/action_card.dart';
 import './stok_yonet_page.dart'; // StokYonetPage'e buradan gidilecek
+import './manage_customers_page.dart'; // Yeni eklenen sayfa
 
 class ListPage extends StatelessWidget {
   const ListPage({super.key});
@@ -19,7 +20,7 @@ class ListPage extends StatelessWidget {
         // automaticallyImplyLeading: false ekleyebilirsin.
         // Ancak iç navigasyonda bir sonraki sayfaya gidildiğinde
         // oradaki AppBar'da geri butonu görünecektir.
-        // automaticallyImplyLeading: false, 
+        // automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Column(
@@ -33,6 +34,19 @@ class ListPage extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => const StokYonetPage(),
+                  ),
+                );
+              },
+            ),
+            ActionCard(
+              icon: Icons.account_balance_wallet_rounded, // Cari yönetimi ikonu
+              title: 'Carileri Yönet',
+              iconSize: 48.0,
+              iconColor: Colors.teal,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ManageCustomersPage(),
                   ),
                 );
               },

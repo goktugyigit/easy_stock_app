@@ -1212,7 +1212,7 @@ class _CreateSalePageState extends State<CreateSalePage>
   }
 
   Widget _buildNotesTab() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -1266,7 +1266,7 @@ class _CreateSalePageState extends State<CreateSalePage>
             ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 24),
 
           // Özet bilgi
           Container(
@@ -1304,6 +1304,9 @@ class _CreateSalePageState extends State<CreateSalePage>
               ],
             ),
           ),
+
+          // Ekstra boşluk - klavye için
+          const SizedBox(height: 100),
         ],
       ),
     );
