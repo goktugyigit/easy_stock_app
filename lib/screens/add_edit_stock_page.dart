@@ -488,7 +488,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
         ),
         additionalActions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.save_alt_outlined),
+            icon: ImageIcon(AssetImage('assets/nav_icons/sales_icon.png'), size: 28),
             onPressed: _isLoading ? null : _doSaveForm,
             tooltip: 'Kaydet',
           )

@@ -170,7 +170,7 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
         title: Text(widget.existingItemId == null ? 'Yeni Dükkan Ekle' : 'Dükkanı Düzenle'),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.save_alt_outlined),
+            icon: _isLoading ? const CircularProgressIndicator() : ImageIcon(AssetImage('assets/nav_icons/sales_icon.png'), size: 28),
             onPressed: _isLoading ? null : _saveForm,
             tooltip: 'Kaydet',
           )

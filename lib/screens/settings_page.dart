@@ -1,4 +1,4 @@
-// lib/screens/settings_page.dart
+THIS SHOULD BE A LINTER ERROR// lib/screens/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // iOS refresh için
 import 'package:flutter/services.dart'; // FilteringTextInputFormatter için
