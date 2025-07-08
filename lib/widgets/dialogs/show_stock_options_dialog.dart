@@ -65,7 +65,7 @@ class _StockOptionsDialog extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.15),
+          color: Colors.black.withValues(alpha: 0.15),
           offset: const Offset(0, 2),
           blurRadius: 10,
         ),

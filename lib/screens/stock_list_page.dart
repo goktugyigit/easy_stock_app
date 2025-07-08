@@ -1,6 +1,7 @@
 // lib/screens/stock_list_page.dart
 // import 'dart:io'; // Image.file burada kullanılmıyor, StockItemCard içinde
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart'
     show kDebugMode; // kIsWeb burada kullanılmıyor
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import '../models/stock_item.dart';
 import '../providers/stock_provider.dart';
 import '../utils/app_theme.dart';
 import '../widgets/stock_item_card.dart';
+import '../widgets/corporate_header.dart';
 import './add_edit_stock_page.dart';
 import './settings_page.dart';
 
@@ -29,7 +31,7 @@ class _StockListPageState extends State<StockListPage> {
   static const double pageHorizontalPadding = 20.0;
   static const double listItemVerticalPadding = 6.0;
   static const double actionBackgroundOverdrag = 70.0;
-  static const double bottomNavBarSpaceEstimate = 88.0;
+  // Bottom navigation bar için dinamik hesaplama yapacağız - sabit değer kaldırıldı
 
   @override
   void initState() {
@@ -76,6 +78,11 @@ class _StockListPageState extends State<StockListPage> {
     });
   }
 
+  // Logo seçme
+  void _selectLogo() {
+    _showStyledFlushbar(context, "Logo seçme özelliği yakında eklenecek.");
+  }
+
   Future<bool?> _showDeleteConfirmationDialog(
       BuildContext ctx, StockItem item) async {
     final result = await showDialog<bool>(
@@ -119,7 +126,6 @@ class _StockListPageState extends State<StockListPage> {
       {Widget? mainButton}) {
     // AMK 1 YAPALIM BAKALIM NE OLACAK
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
-    final double totalBottomSpace = bottomSafeArea + 1.0; // En düşük değer
 
     Flushbar(
       messageText: Row(
@@ -150,7 +156,7 @@ class _StockListPageState extends State<StockListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.15),
+          color: Colors.black.withValues(alpha: 0.15),
           offset: const Offset(0, 2),
           blurRadius: 10,
         ),
@@ -222,263 +228,320 @@ class _StockListPageState extends State<StockListPage> {
         final List<StockItem> items = _getSortedItems(stockProvider.items);
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Stok Listesi'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                tooltip: 'Yeni Stok Ekle',
-                onPressed: () => _navigateToAddEdit(),
-              ),
-            ],
+          appBar: CorporateHeader(
+            title: 'Stok Listesi',
+            onLogoTap: _selectLogo,
           ),
-          body: RefreshIndicator(
-            onRefresh: _loadPageData,
-            child: items.isEmpty
-                ? _EmptyList(onAddFirst: () => _navigateToAddEdit())
-                : ListView.builder(
-                    padding: EdgeInsets.only(
-                      top: listItemVerticalPadding,
-                      bottom: bottomNavBarSpaceEstimate +
-                          MediaQuery.of(context).padding.bottom +
-                          listItemVerticalPadding,
-                    ),
-                    itemCount: items.length,
-                    itemBuilder: (listViewContext, i) {
-                      final currentItem = items[i];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: pageHorizontalPadding,
-                          vertical: listItemVerticalPadding,
-                        ),
-                        child: LayoutBuilder(
-                          builder: (layoutBuilderContext, constraints) {
-                            final double cardWidth = constraints.maxWidth;
-                            final double currentProgress =
-                                _swipeProgress[currentItem.id] ?? 0.0;
-                            final DismissDirection? currentDirection =
-                                _swipeDirection[currentItem.id];
-                            double backgroundRevealWidth =
-                                cardWidth * currentProgress;
-                            double totalBackgroundWidth =
-                                backgroundRevealWidth +
-                                    (currentProgress > 0.01
-                                        ? actionBackgroundOverdrag
-                                        : 0.0);
-                            if (currentProgress < 0.01) {
-                              totalBackgroundWidth = 0;
-                            }
+          body: CustomScrollView(
+            // iOS refresh için gerekli physics
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              // iOS tarzı refresh control
+              CupertinoSliverRefreshControl(
+                onRefresh: _loadPageData,
+                refreshTriggerPullDistance: 80.0, // iOS standart
+                refreshIndicatorExtent: 60.0, // iOS standart
+              ),
+              // Üst sağ köşedeki + butonu
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0, vertical: 6.0),
+                  child: Row(
+                    children: [
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline, size: 28),
+                        tooltip: 'Yeni Stok Ekle',
+                        onPressed: () => _navigateToAddEdit(),
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Ana içerik
+              items.isEmpty
+                  ? SliverFillRemaining(
+                      child: _EmptyList(onAddFirst: () => _navigateToAddEdit()),
+                    )
+                  : SliverPadding(
+                      padding: EdgeInsets.only(
+                        top: listItemVerticalPadding,
+                        // Dinamik bottom padding hesaplama - overflow çözümü (artırıldı)
+                        bottom: MediaQuery.of(context).padding.bottom +
+                            120.0, // 120px navbar için güvenli alan
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (listViewContext, i) {
+                            final currentItem = items[i];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: pageHorizontalPadding,
+                                vertical: listItemVerticalPadding,
+                              ),
+                              child: LayoutBuilder(
+                                builder: (layoutBuilderContext, constraints) {
+                                  final double cardWidth = constraints.maxWidth;
+                                  final double currentProgress =
+                                      _swipeProgress[currentItem.id] ?? 0.0;
+                                  final DismissDirection? currentDirection =
+                                      _swipeDirection[currentItem.id];
+                                  double backgroundRevealWidth =
+                                      cardWidth * currentProgress;
+                                  double totalBackgroundWidth =
+                                      backgroundRevealWidth +
+                                          (currentProgress > 0.01
+                                              ? actionBackgroundOverdrag
+                                              : 0.0);
+                                  if (currentProgress < 0.01) {
+                                    totalBackgroundWidth = 0;
+                                  }
 
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                  StockItemCard.cardRadius),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  if (currentDirection != null)
-                                    Positioned(
-                                      top: 0,
-                                      bottom: 0,
-                                      left: currentDirection ==
-                                              DismissDirection.startToEnd
-                                          ? 0
-                                          : null,
-                                      right: currentDirection ==
-                                              DismissDirection.endToStart
-                                          ? 0
-                                          : null,
-                                      width: totalBackgroundWidth.clamp(0.0,
-                                          cardWidth + actionBackgroundOverdrag),
-                                      child: _buildActionBackgroundLayer(
-                                        currentDirection ==
-                                                DismissDirection.startToEnd
-                                            ? AppTheme.accentColor
-                                            : Colors.red.shade700,
-                                        currentDirection ==
-                                                DismissDirection.startToEnd
-                                            ? Icons.push_pin
-                                            : Icons.delete_sweep_outlined,
-                                        currentDirection ==
-                                                DismissDirection.startToEnd
-                                            ? Alignment.centerLeft
-                                            : Alignment.centerRight,
-                                      ),
-                                    ),
-                                  Dismissible(
-                                    key: ValueKey(currentItem.id),
-                                    background:
-                                        Container(color: Colors.transparent),
-                                    secondaryBackground:
-                                        Container(color: Colors.transparent),
-                                    onUpdate: (details) {
-                                      setState(() {
-                                        _swipeProgress[currentItem.id] =
-                                            details.progress;
-                                        _swipeDirection[currentItem.id] =
-                                            details.direction;
-                                      });
-                                    },
-                                    confirmDismiss: (direction) async {
-                                      bool? confirmed = false;
-                                      final currentItemContextForDialog =
-                                          listViewContext;
-
-                                      if (direction ==
-                                          DismissDirection.startToEnd) {
-                                        if (!mounted) return false;
-                                        // SABİTLEME MANTIĞI
-                                        await stockProvider
-                                            .togglePinStatus(currentItem.id);
-                                        final updatedItem = stockProvider.items
-                                            .firstWhere(
-                                                (i) => i.id == currentItem.id);
-
-                                        // LİSTEYİ YENIDEN SIRALA (WhatsApp mantığı için kritik!)
-                                        if (mounted) {
-                                          setState(() {
-                                            // Sıralama otomatik olarak Consumer rebuild ile yapılacak
-                                          });
-                                        }
-
-                                        _showStyledFlushbar(
-                                          currentItemContextForDialog,
-                                          updatedItem.isPinned
-                                              ? '"${currentItem.name}" sabitlendi.'
-                                              : '"${currentItem.name}" sabitlemesi kaldırıldı.',
-                                        );
-                                        confirmed =
-                                            false; // Kartın kaybolmasını engelle
-                                      } else if (direction ==
-                                          DismissDirection.endToStart) {
-                                        confirmed =
-                                            await _showDeleteConfirmationDialog(
-                                                currentItemContextForDialog,
-                                                currentItem);
-                                        confirmed ??= false;
-                                      }
-
-                                      if (confirmed == false) {
-                                        setState(() {
-                                          _swipeProgress.remove(currentItem.id);
-                                          _swipeDirection
-                                              .remove(currentItem.id);
-                                        });
-                                      }
-                                      return confirmed;
-                                    },
-                                    onDismissed: (direction) {
-                                      if (direction ==
-                                          DismissDirection.endToStart) {
-                                        final originalItem = StockItem.fromMap(
-                                            currentItem.toMap());
-                                        stockProvider
-                                            .deleteItem(currentItem.id);
-
-                                        final scaffoldCtxForDismiss =
-                                            listViewContext;
-                                        if (mounted) {
-                                          bool isUndoPressed = false;
-
-                                          final undoButton = TextButton(
-                                            onPressed: () {
-                                              if (isUndoPressed) return;
-                                              isUndoPressed = true;
-
-                                              stockProvider.addItem(
-                                                name: originalItem.name,
-                                                quantity: originalItem.quantity,
-                                                barcode: originalItem.barcode,
-                                                qrCode: originalItem.qrCode,
-                                                shelfLocation:
-                                                    originalItem.shelfLocation,
-                                                stockCode:
-                                                    originalItem.stockCode,
-                                                category: originalItem.category,
-                                                localImagePath:
-                                                    originalItem.localImagePath,
-                                                alertThreshold:
-                                                    originalItem.alertThreshold,
-                                                brand: originalItem.brand,
-                                                supplier: originalItem.supplier,
-                                                invoiceNumber:
-                                                    originalItem.invoiceNumber,
-                                                maxStockThreshold: originalItem
-                                                    .maxStockThreshold,
-                                                warehouseId:
-                                                    originalItem.warehouseId,
-                                                shopId: originalItem.shopId,
-                                              );
-
-                                              Navigator.of(context,
-                                                      rootNavigator: true)
-                                                  .pop();
-                                            },
-                                            child: Text(
-                                              "GERİ AL",
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          );
-
-                                          _showStyledFlushbar(
-                                            scaffoldCtxForDismiss,
-                                            '"${originalItem.name}" silindi.',
-                                            mainButton: undoButton,
-                                          );
-                                        }
-                                      }
-                                      setState(() {
-                                        _swipeProgress.remove(currentItem.id);
-                                        _swipeDirection.remove(currentItem.id);
-                                      });
-                                    },
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                        StockItemCard.cardRadius),
                                     child: Stack(
+                                      alignment: Alignment.center,
                                       children: [
-                                        StockItemCard(
-                                          key: ValueKey(
-                                              'list_stock_card_${currentItem.id}'),
-                                          stockItem: currentItem,
-                                          globalMaxStockThreshold:
-                                              _globalMaxStockThreshold,
-                                          onTap: () => _navigateToAddEdit(
-                                              id: currentItem.id),
-                                        ),
-                                        // RAPTIYE IKONU (Home page ile aynı)
-                                        if (currentItem.isPinned)
+                                        if (currentDirection != null)
                                           Positioned(
-                                            top: 6,
-                                            right: 8,
-                                            child: Transform.rotate(
-                                              angle: 0.4, // İkonu hafifçe eğ
-                                              child: Icon(
-                                                Icons.push_pin,
-                                                color: Colors.white
-                                                    .withOpacity(0.95),
-                                                size: 20,
-                                                shadows: const [
-                                                  BoxShadow(
-                                                    color: Colors.black54,
-                                                    blurRadius: 6.0,
-                                                    offset: Offset(1, 1),
-                                                  )
-                                                ],
-                                              ),
+                                            top: 0,
+                                            bottom: 0,
+                                            left: currentDirection ==
+                                                    DismissDirection.startToEnd
+                                                ? 0
+                                                : null,
+                                            right: currentDirection ==
+                                                    DismissDirection.endToStart
+                                                ? 0
+                                                : null,
+                                            width: totalBackgroundWidth.clamp(
+                                                0.0,
+                                                cardWidth +
+                                                    actionBackgroundOverdrag),
+                                            child: _buildActionBackgroundLayer(
+                                              currentDirection ==
+                                                      DismissDirection
+                                                          .startToEnd
+                                                  ? AppTheme.accentColor
+                                                  : Colors.red.shade700,
+                                              currentDirection ==
+                                                      DismissDirection
+                                                          .startToEnd
+                                                  ? Icons.push_pin
+                                                  : Icons.delete_sweep_outlined,
+                                              currentDirection ==
+                                                      DismissDirection
+                                                          .startToEnd
+                                                  ? Alignment.centerLeft
+                                                  : Alignment.centerRight,
                                             ),
                                           ),
+                                        Dismissible(
+                                          key: ValueKey(currentItem.id),
+                                          background: Container(
+                                              color: Colors.transparent),
+                                          secondaryBackground: Container(
+                                              color: Colors.transparent),
+                                          onUpdate: (details) {
+                                            setState(() {
+                                              _swipeProgress[currentItem.id] =
+                                                  details.progress;
+                                              _swipeDirection[currentItem.id] =
+                                                  details.direction;
+                                            });
+                                          },
+                                          confirmDismiss: (direction) async {
+                                            bool? confirmed = false;
+                                            final currentItemContextForDialog =
+                                                listViewContext;
+
+                                            if (direction ==
+                                                DismissDirection.startToEnd) {
+                                              if (!mounted) return false;
+                                              // SABİTLEME MANTIĞI
+                                              await stockProvider
+                                                  .togglePinStatus(
+                                                      currentItem.id);
+                                              final updatedItem = stockProvider
+                                                  .items
+                                                  .firstWhere((i) =>
+                                                      i.id == currentItem.id);
+
+                                              // LİSTEYİ YENIDEN SIRALA (WhatsApp mantığı için kritik!)
+                                              if (mounted) {
+                                                setState(() {
+                                                  // Sıralama otomatik olarak Consumer rebuild ile yapılacak
+                                                });
+                                              }
+
+                                              _showStyledFlushbar(
+                                                currentItemContextForDialog,
+                                                updatedItem.isPinned
+                                                    ? '"${currentItem.name}" sabitlendi.'
+                                                    : '"${currentItem.name}" sabitlemesi kaldırıldı.',
+                                              );
+                                              confirmed =
+                                                  false; // Kartın kaybolmasını engelle
+                                            } else if (direction ==
+                                                DismissDirection.endToStart) {
+                                              confirmed =
+                                                  await _showDeleteConfirmationDialog(
+                                                      currentItemContextForDialog,
+                                                      currentItem);
+                                              confirmed ??= false;
+                                            }
+
+                                            if (confirmed == false) {
+                                              setState(() {
+                                                _swipeProgress
+                                                    .remove(currentItem.id);
+                                                _swipeDirection
+                                                    .remove(currentItem.id);
+                                              });
+                                            }
+                                            return confirmed;
+                                          },
+                                          onDismissed: (direction) {
+                                            if (direction ==
+                                                DismissDirection.endToStart) {
+                                              final originalItem =
+                                                  StockItem.fromMap(
+                                                      currentItem.toMap());
+                                              stockProvider
+                                                  .deleteItem(currentItem.id);
+
+                                              final scaffoldCtxForDismiss =
+                                                  listViewContext;
+                                              if (mounted) {
+                                                bool isUndoPressed = false;
+
+                                                final undoButton = TextButton(
+                                                  onPressed: () {
+                                                    if (isUndoPressed) return;
+                                                    isUndoPressed = true;
+
+                                                    stockProvider.addItem(
+                                                      name: originalItem.name,
+                                                      quantity:
+                                                          originalItem.quantity,
+                                                      barcode:
+                                                          originalItem.barcode,
+                                                      qrCode:
+                                                          originalItem.qrCode,
+                                                      shelfLocation:
+                                                          originalItem
+                                                              .shelfLocation,
+                                                      stockCode: originalItem
+                                                          .stockCode,
+                                                      category:
+                                                          originalItem.category,
+                                                      localImagePath:
+                                                          originalItem
+                                                              .localImagePath,
+                                                      alertThreshold:
+                                                          originalItem
+                                                              .alertThreshold,
+                                                      brand: originalItem.brand,
+                                                      supplier:
+                                                          originalItem.supplier,
+                                                      invoiceNumber:
+                                                          originalItem
+                                                              .invoiceNumber,
+                                                      maxStockThreshold:
+                                                          originalItem
+                                                              .maxStockThreshold,
+                                                      warehouseId: originalItem
+                                                          .warehouseId,
+                                                      shopId:
+                                                          originalItem.shopId,
+                                                    );
+
+                                                    Navigator.of(context,
+                                                            rootNavigator: true)
+                                                        .pop();
+                                                  },
+                                                  child: Text(
+                                                    "GERİ AL",
+                                                    style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                );
+
+                                                if (mounted) {
+                                                  _showStyledFlushbar(
+                                                    scaffoldCtxForDismiss,
+                                                    '"${originalItem.name}" silindi.',
+                                                    mainButton: undoButton,
+                                                  );
+                                                }
+                                              }
+                                            }
+                                            setState(() {
+                                              _swipeProgress
+                                                  .remove(currentItem.id);
+                                              _swipeDirection
+                                                  .remove(currentItem.id);
+                                            });
+                                          },
+                                          child: Stack(
+                                            children: [
+                                              StockItemCard(
+                                                key: ValueKey(
+                                                    'list_stock_card_${currentItem.id}'),
+                                                stockItem: currentItem,
+                                                globalMaxStockThreshold:
+                                                    _globalMaxStockThreshold,
+                                                onTap: () => _navigateToAddEdit(
+                                                    id: currentItem.id),
+                                              ),
+                                              // RAPTIYE IKONU (Home page ile aynı)
+                                              if (currentItem.isPinned)
+                                                Positioned(
+                                                  top: 6,
+                                                  right: 8,
+                                                  child: Transform.rotate(
+                                                    angle:
+                                                        0.4, // İkonu hafifçe eğ
+                                                    child: Icon(
+                                                      Icons.push_pin,
+                                                      color: Colors.white
+                                                          .withValues(
+                                                              alpha: 0.95),
+                                                      size: 20,
+                                                      shadows: const [
+                                                        BoxShadow(
+                                                          color: Colors.black54,
+                                                          blurRadius: 6.0,
+                                                          offset: Offset(1, 1),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             );
                           },
+                          childCount: items.length,
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+            ],
           ),
         );
       },

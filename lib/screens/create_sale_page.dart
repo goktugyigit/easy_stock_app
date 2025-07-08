@@ -1,11 +1,11 @@
 // lib/screens/create_sale_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // debugPrint için
+// debugPrint için
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/stock_item.dart';
 import '../providers/stock_provider.dart'; // Stok miktarını düşürmek için
-import '../providers/sale_provider.dart';  // Satışı kaydetmek için
+import '../providers/sale_provider.dart'; // Satışı kaydetmek için
 
 class CreateSalePage extends StatefulWidget {
   final StockItem stockItem;
@@ -18,7 +18,8 @@ class CreateSalePage extends StatefulWidget {
 
 class _CreateSalePageState extends State<CreateSalePage> {
   final _customerNameController = TextEditingController();
-  final _quantityController = TextEditingController(text: '1'); // Varsayılan miktar 1
+  final _quantityController =
+      TextEditingController(text: '1'); // Varsayılan miktar 1
   late int _quantity;
 
   @override
@@ -51,13 +52,18 @@ class _CreateSalePageState extends State<CreateSalePage> {
         _quantity = newQuantity;
         _quantityController.text = _quantity.toString();
       } else if (newQuantity < 1) {
-          ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text("Miktar 1'den az olamaz."), backgroundColor: Colors.orange),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Miktar 1'den az olamaz."),
+              backgroundColor: Colors.orange),
+        );
       } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text("Stokta yeterli ürün yok! Maksimum: ${widget.stockItem.quantity}"), backgroundColor: Colors.redAccent),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  "Stokta yeterli ürün yok! Maksimum: ${widget.stockItem.quantity}"),
+              backgroundColor: Colors.redAccent),
+        );
       }
     });
   }
@@ -68,7 +74,8 @@ class _CreateSalePageState extends State<CreateSalePage> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         onPressed: () => _updateQuantity(value),
@@ -76,22 +83,27 @@ class _CreateSalePageState extends State<CreateSalePage> {
       ),
     );
   }
-  
+
   void _completeSale() {
     if (_quantity <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Lütfen geçerli bir miktar girin."), backgroundColor: Colors.orange),
+        const SnackBar(
+            content: Text("Lütfen geçerli bir miktar girin."),
+            backgroundColor: Colors.orange),
       );
       return;
     }
 
     if (_quantity > widget.stockItem.quantity) {
-       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text("Stokta yeterli ürün yok! Maksimum: ${widget.stockItem.quantity}"), backgroundColor: Colors.redAccent),
-       );
-       return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                "Stokta yeterli ürün yok! Maksimum: ${widget.stockItem.quantity}"),
+            backgroundColor: Colors.redAccent),
+      );
+      return;
     }
-    
+
     final stockProvider = Provider.of<StockProvider>(context, listen: false);
     final saleProvider = Provider.of<SaleProvider>(context, listen: false);
 
@@ -99,7 +111,9 @@ class _CreateSalePageState extends State<CreateSalePage> {
     saleProvider.addSale(
       soldStockItem: widget.stockItem,
       quantitySold: _quantity,
-      customerName: _customerNameController.text.isEmpty ? null : _customerNameController.text,
+      customerName: _customerNameController.text.isEmpty
+          ? null
+          : _customerNameController.text,
     );
 
     // 2. StockProvider'daki ilgili stoğun miktarını düşür
@@ -125,7 +139,9 @@ class _CreateSalePageState extends State<CreateSalePage> {
 
     // 3. Kullanıcıya başarı mesajı göster ve sayfayı kapat
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Satış başarıyla kaydedildi!"), backgroundColor: Colors.green),
+      const SnackBar(
+          content: Text("Satış başarıyla kaydedildi!"),
+          backgroundColor: Colors.green),
     );
     Navigator.of(context).pop();
   }
@@ -150,7 +166,8 @@ class _CreateSalePageState extends State<CreateSalePage> {
               ),
             ),
             const SizedBox(height: 24),
-            Text('Satış Miktarı', style: Theme.of(context).textTheme.titleLarge),
+            Text('Satış Miktarı',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -165,21 +182,25 @@ class _CreateSalePageState extends State<CreateSalePage> {
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                     ),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     onChanged: (value) {
                       int newQuantity = int.tryParse(value) ?? 0;
-                       if (newQuantity >= 1 && newQuantity <= widget.stockItem.quantity) {
-                           _quantity = newQuantity;
-                       } else if (newQuantity < 1) {
-                           _quantity = 1;
-                           _quantityController.text = '1'; // TextField'ı da güncelle
-                       } else {
-                           _quantity = widget.stockItem.quantity;
-                           _quantityController.text = _quantity.toString(); // TextField'ı da güncelle
-                       }
-                       setState(() {}); // Değişikliği yansıt
+                      if (newQuantity >= 1 &&
+                          newQuantity <= widget.stockItem.quantity) {
+                        _quantity = newQuantity;
+                      } else if (newQuantity < 1) {
+                        _quantity = 1;
+                        _quantityController.text =
+                            '1'; // TextField'ı da güncelle
+                      } else {
+                        _quantity = widget.stockItem.quantity;
+                        _quantityController.text =
+                            _quantity.toString(); // TextField'ı da güncelle
+                      }
+                      setState(() {}); // Değişikliği yansıt
                     },
                   ),
                 ),

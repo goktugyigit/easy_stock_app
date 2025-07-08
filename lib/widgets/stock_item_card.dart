@@ -26,21 +26,24 @@ class StockItemCard extends StatelessWidget {
     const double imageBorderRadius = 12.0;
     Widget imageWidget;
 
-    if (stockItem.localImagePath != null && stockItem.localImagePath!.isNotEmpty) {
+    if (stockItem.localImagePath != null &&
+        stockItem.localImagePath!.isNotEmpty) {
       imageWidget = kIsWeb
           ? Image.network(
               stockItem.localImagePath!,
               width: imageSize,
               height: imageSize,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(imageSize, imageBorderRadius),
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildPlaceholderImage(imageSize, imageBorderRadius),
             )
           : Image.file(
               File(stockItem.localImagePath!),
               width: imageSize,
               height: imageSize,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(imageSize, imageBorderRadius),
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildPlaceholderImage(imageSize, imageBorderRadius),
             );
     } else {
       imageWidget = _buildPlaceholderImage(imageSize, imageBorderRadius);
@@ -72,7 +75,8 @@ class StockItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String? value, {bool isBoldValue = false}) {
+  Widget _buildInfoRow(String label, String? value,
+      {bool isBoldValue = false}) {
     if (value == null || value.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -80,18 +84,23 @@ class StockItemCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 1.5, bottom: 1.5),
       child: RichText(
         text: TextSpan(
-          style: TextStyle(fontSize: 11.5, color: AppTheme.secondaryTextColor.withAlpha(220), height: 1.35),
-          children: [
-            TextSpan(text: "$label ", style: TextStyle(color: AppTheme.secondaryTextColor.withAlpha(180), fontWeight: FontWeight.w500)),
-            TextSpan(
-              text: value,
-              style: TextStyle(
-                fontWeight: isBoldValue ? FontWeight.w600 : FontWeight.normal,
-                color: AppTheme.primaryTextColor.withAlpha(240)
-              )
-            ),
-          ]
-        ),
+            style: TextStyle(
+                fontSize: 11.5,
+                color: AppTheme.secondaryTextColor.withAlpha(220),
+                height: 1.35),
+            children: [
+              TextSpan(
+                  text: "$label ",
+                  style: TextStyle(
+                      color: AppTheme.secondaryTextColor.withAlpha(180),
+                      fontWeight: FontWeight.w500)),
+              TextSpan(
+                  text: value,
+                  style: TextStyle(
+                      fontWeight:
+                          isBoldValue ? FontWeight.w600 : FontWeight.normal,
+                      color: AppTheme.primaryTextColor.withAlpha(240))),
+            ]),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -100,14 +109,18 @@ class StockItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int maxStokForIndicator = stockItem.maxStockThreshold ?? globalMaxStockThreshold;
+    final int maxStokForIndicator =
+        stockItem.maxStockThreshold ?? globalMaxStockThreshold;
     final cardBgColor = AppTheme.glassCardBackgroundColor;
-    final cardBorderColor = AppTheme.glassCardBorderColor;
-    
+    // Navbar'daki gibi mavi border kullan
+    final cardBorderColor = AppTheme.primaryColor.withValues(alpha: 0.2);
+
     // Yüzdeyi hesapla, maxStok'un sıfır olma durumunu kontrol et
-    final double stockPercentage = (maxStokForIndicator > 0) 
-        ? (stockItem.quantity / maxStokForIndicator) * 100.0 
-        : (stockItem.quantity > 0 ? 100.0 : 0.0); // Eğer max stok 0 ise ve stok varsa dolu göster
+    final double stockPercentage = (maxStokForIndicator > 0)
+        ? (stockItem.quantity / maxStokForIndicator) * 100.0
+        : (stockItem.quantity > 0
+            ? 100.0
+            : 0.0); // Eğer max stok 0 ise ve stok varsa dolu göster
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(cardRadius),
@@ -165,7 +178,8 @@ class StockItemCard extends StatelessWidget {
                     FanusWidget(
                       stockPercentage: stockPercentage,
                       stockValueText: stockItem.quantity.toString(),
-                      unit: "ADET", // Burayı isteğe bağlı olarak dinamik hale getirebilirsin
+                      unit:
+                          "ADET", // Burayı isteğe bağlı olarak dinamik hale getirebilirsin
                       size: 75.0,
                     ),
                   ],
