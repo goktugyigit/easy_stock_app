@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR// lib/screens/add_edit_shop_page.dart
+// lib/screens/add_edit_shop_page.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
