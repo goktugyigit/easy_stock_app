@@ -11,6 +11,8 @@ class FlushbarHelper {
     return bottomSafeArea + 100.0; // Standart gap
   }
 
+  /// Kullanım örneği:
+  /// FlushbarHelper.showOptimizedFlushbar(context, 'Mesaj', type: FlushbarType.success);
   /// Standard Flushbar - basit ve güvenilir
   static void showOptimizedFlushbar(
     BuildContext context,

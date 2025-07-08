@@ -1,10 +1,11 @@
-THIS SHOULD BE A LINTER ERRORimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:ui';
 // DÜZELTME: Yeni paket import edildi.
 import 'package:another_flushbar/flushbar.dart';
 import '../../models/stock_item.dart';
 import '../../screens/add_edit_stock_page.dart';
 import '../../screens/create_sale_page.dart';
+import '../../utils/flushbar_helper.dart';
 
 Future<void> showStockOptionsDialog(BuildContext context, StockItem stockItem) {
   return showDialog(
@@ -37,43 +38,7 @@ class _StockOptionsDialog extends StatelessWidget {
     final double totalBottomSpace =
         navBarHeight + navBarBottomMargin + navBarGap + bottomSafeArea;
 
-    Flushbar(
-      messageText: Row(
-        children: [
-          Icon(Icons.info_outline,
-              color: Theme.of(context).primaryColor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                  color: Colors.black87, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
-      ),
-      flushbarPosition: FlushbarPosition.BOTTOM,
-      forwardAnimationCurve: Curves.elasticOut,
-      reverseAnimationCurve: Curves.fastOutSlowIn,
-      backgroundColor: Colors.white,
-      borderRadius: BorderRadius.circular(30.0),
-      margin: EdgeInsets.only(
-        bottom: totalBottomSpace,
-        left: 20.0,
-        right: 20.0,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      boxShadows: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.15),
-          offset: const Offset(0, 2),
-          blurRadius: 10,
-        ),
-      ],
-      duration: const Duration(seconds: 4),
-      animationDuration: const Duration(milliseconds: 400),
-      isDismissible: true,
-    ).show(context);
+    FlushbarHelper.showOptimizedFlushbar(context, message, type: FlushbarType.info);
   }
 
   @override
