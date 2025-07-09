@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/customer.dart';
 import '../providers/customer_provider.dart';
+import '../widgets/corporate_header.dart';
 
 class AddEditCustomerPage extends StatefulWidget {
   final Customer? customer; // null ise yeni ekleme, değilse düzenleme
@@ -300,29 +301,12 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Cari Düzenle' : 'Yeni Cari Ekle'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        actions: [
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              ),
-            )
-          else
-            IconButton(
-              onPressed: _saveCustomer,
-              icon: const Icon(Icons.check),
-            ),
-        ],
+      appBar: CorporateHeader(
+        title: _isEditing ? 'Cari Düzenle' : 'Yeni Cari Ekle',
+        showBackButton: true,
+        showSaveButton: true,
+        centerTitle: true,
+        onSavePressed: _isLoading ? null : _saveCustomer,
       ),
       body: SafeArea(
         child: Form(
@@ -435,33 +419,6 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
                 ),
 
                 const SizedBox(height: 40),
-
-                // Kaydet Butonu
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveCustomer,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            _isEditing ? 'Güncelle' : 'Kaydet',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
               ],
             ),
           ),

@@ -17,6 +17,15 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? additionalActions;
   final VoidCallback? onLogoTap; // Logo tıklama için
 
+  // Yeni parametreler
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+  final bool showSaveButton;
+  final VoidCallback? onSavePressed;
+  final bool showAddButton;
+  final VoidCallback? onAddPressed;
+  final bool centerTitle;
+
   const CorporateHeader({
     super.key,
     required this.title,
@@ -32,6 +41,13 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
     this.searchHint = 'Ara...',
     this.additionalActions,
     this.onLogoTap,
+    this.showBackButton = false,
+    this.onBackPressed,
+    this.showSaveButton = false,
+    this.onSavePressed,
+    this.showAddButton = false,
+    this.onAddPressed,
+    this.centerTitle = false,
   });
 
   @override
@@ -434,17 +450,91 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
           horizontal: 20.0, vertical: 12.0), // Küçültüldü
       child: Row(
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: AppTheme.primaryTextColor,
-              fontSize: 18, // Küçültüldü
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Poppins',
+          // Sol taraf - Geri butonu
+          if (showBackButton)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                color: AppTheme.primaryTextColor,
+                iconSize: 20,
+                onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+                padding: EdgeInsets.zero,
+              ),
+            )
+          else
+            const SizedBox(width: 40), // Boş alan (ortalama için)
+
+          // Orta kısım - Başlık
+          Expanded(
+            child: Center(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                ),
+                textAlign: centerTitle ? TextAlign.center : TextAlign.left,
+              ),
             ),
           ),
-          const Spacer(),
-          // additionalActions kaldırıldı
+
+          // Sağ taraf - Kaydet veya Ekleme butonu
+          if (showSaveButton)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.check_rounded), // Güzel kaydet ikonu
+                color: AppTheme.primaryColor,
+                iconSize: 20,
+                onPressed: onSavePressed,
+                padding: EdgeInsets.zero,
+                tooltip: 'Kaydet',
+              ),
+            )
+          else if (showAddButton)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.add_rounded), // Güzel ekleme ikonu
+                color: AppTheme.primaryColor,
+                iconSize: 20,
+                onPressed: onAddPressed,
+                padding: EdgeInsets.zero,
+                tooltip: 'Yeni Ekle',
+              ),
+            )
+          else
+            const SizedBox(width: 40), // Boş alan (ortalama için)
         ],
       ),
     );

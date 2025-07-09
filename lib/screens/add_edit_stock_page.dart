@@ -483,16 +483,13 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
       appBar: CorporateHeader(
         title:
             widget.existingItemId == null ? 'Yeni Stok Ekle' : 'Stok Düzenle',
+        showBackButton: true,
+        showSaveButton: true,
+        centerTitle: true,
+        onSavePressed: _isLoading ? null : _doSaveForm,
         onLogoTap: () => ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Logo seçme özelliği yakında!')),
         ),
-        additionalActions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.save_alt_outlined),
-            onPressed: _isLoading ? null : _doSaveForm,
-            tooltip: 'Kaydet',
-          )
-        ],
       ),
       body: (_isLoading && !_areWarehousesAndShopsLoaded)
           ? const Center(child: CircularProgressIndicator())
@@ -664,15 +661,6 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                     _buildAssignmentSection(), // Depo/Dükkan atama bölümü
 
                     const SizedBox(height: 25),
-                    ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _doSaveForm,
-                      icon: const Icon(Icons.save_alt_outlined),
-                      label: const Text('Stoku Kaydet'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(fontSize: 16),
-                      ),
-                    ),
                   ],
                 ),
               ),

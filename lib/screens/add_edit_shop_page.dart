@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/shop_provider.dart';
 import '../models/shop_item.dart';
+import '../widgets/corporate_header.dart';
 
 class AddEditShopPage extends StatefulWidget {
   final String? existingItemId;
@@ -179,17 +180,14 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.existingItemId == null
+      appBar: CorporateHeader(
+        title: widget.existingItemId == null
             ? 'Yeni Dükkan Ekle'
-            : 'Dükkanı Düzenle'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.save_alt_outlined),
-            onPressed: _isLoading ? null : _saveForm,
-            tooltip: 'Kaydet',
-          )
-        ],
+            : 'Dükkanı Düzenle',
+        showBackButton: true,
+        showSaveButton: true,
+        centerTitle: true,
+        onSavePressed: _isLoading ? null : _saveForm,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -248,15 +246,6 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
                     ),
                     // Dükkana özel ek alanlar (telefon, çalışma saatleri vb.) buraya eklenebilir
                     const SizedBox(height: 25),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.save_alt_outlined),
-                      label: const Text('Dükkanı Kaydet'),
-                      onPressed: _isLoading ? null : _saveForm,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(fontSize: 16),
-                      ),
-                    ),
                   ],
                 ),
               ),

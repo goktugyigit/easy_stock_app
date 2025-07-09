@@ -217,7 +217,12 @@ class _StockListPageState extends State<StockListPage> {
         Provider.of<StockProvider>(context, listen: false);
     if (_isLoadingSettings && stockProviderForInitialCheck.items.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Stok Listesi')),
+        appBar: CorporateHeader(
+          title: 'Stok Listesi',
+          showBackButton: true,
+          centerTitle: true,
+          onLogoTap: _selectLogo,
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -230,6 +235,10 @@ class _StockListPageState extends State<StockListPage> {
         return Scaffold(
           appBar: CorporateHeader(
             title: 'Stok Listesi',
+            showBackButton: true,
+            showAddButton: true,
+            centerTitle: true,
+            onAddPressed: () => _navigateToAddEdit(),
             onLogoTap: _selectLogo,
           ),
           body: CustomScrollView(
@@ -243,24 +252,6 @@ class _StockListPageState extends State<StockListPage> {
                 onRefresh: _loadPageData,
                 refreshTriggerPullDistance: 80.0, // iOS standart
                 refreshIndicatorExtent: 60.0, // iOS standart
-              ),
-              // Üst sağ köşedeki + butonu
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 6.0),
-                  child: Row(
-                    children: [
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle_outline, size: 28),
-                        tooltip: 'Yeni Stok Ekle',
-                        onPressed: () => _navigateToAddEdit(),
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
               ),
               // Ana içerik
               items.isEmpty

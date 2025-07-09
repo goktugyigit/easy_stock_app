@@ -114,6 +114,10 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: CorporateHeader(
         title: 'Genel Ayarlar',
+        showBackButton: true,
+        showSaveButton: true,
+        centerTitle: true,
+        onSavePressed: _isLoading ? null : _saveSettings,
         onLogoTap: () => ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Logo seçme özelliği yakında!')),
         ),
@@ -131,24 +135,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   onRefresh: _loadSettings,
                   refreshTriggerPullDistance: 80.0,
                   refreshIndicatorExtent: 60.0,
-                ),
-                // Sağ üst kaydet butonu
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 6.0),
-                    child: Row(
-                      children: [
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.save_alt_outlined, size: 28),
-                          tooltip: 'Ayarları Kaydet',
-                          onPressed: _isLoading ? null : _saveSettings,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
                 // Ana içerik
                 SliverPadding(
@@ -233,16 +219,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               },
                             ),
                             const SizedBox(height: 30),
-                            ElevatedButton.icon(
-                              icon: const Icon(Icons.save_alt_outlined),
-                              label: const Text('Ayarları Kaydet'),
-                              onPressed: _isLoading ? null : _saveSettings,
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                                textStyle: const TextStyle(fontSize: 16),
-                              ),
-                            ),
                           ],
                         ),
                       ),

@@ -51,38 +51,6 @@ class ManageCustomersPage extends StatelessWidget {
                 );
               },
             ),
-            ActionCard(
-              icon: Icons.people_rounded, // Müşteri ikonu
-              title: 'Sadece Müşteriler',
-              iconSize: 48.0,
-              iconColor: Colors.orange,
-              onTap: () {
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (ctx) => const CustomerListPage(
-                      initialFilter: CustomerFilterType.customers,
-                      title: 'Müşteriler',
-                    ),
-                  ),
-                );
-              },
-            ),
-            ActionCard(
-              icon: Icons.business_rounded, // Tedarikçi ikonu
-              title: 'Sadece Tedarikçiler',
-              iconSize: 48.0,
-              iconColor: Colors.purple,
-              onTap: () {
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (ctx) => const CustomerListPage(
-                      initialFilter: CustomerFilterType.suppliers,
-                      title: 'Tedarikçiler',
-                    ),
-                  ),
-                );
-              },
-            ),
           ],
         ),
       ),
