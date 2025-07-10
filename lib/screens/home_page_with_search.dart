@@ -390,7 +390,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
           onBarcodeScan: _scanBarcode,
           onFilterTap: _showAdvancedFilter,
           onSearchCancel: _cancelSearch,
-          onLogoTap: _selectLogo,
           isSearchFocused: _isSearchFocused,
           searchHint: 'Stok ara, barkod tara...',
         ),

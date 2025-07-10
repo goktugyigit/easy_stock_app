@@ -221,7 +221,6 @@ class _StockListPageState extends State<StockListPage> {
           title: 'Stok Listesi',
           showBackButton: true,
           centerTitle: true,
-          onLogoTap: _selectLogo,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -239,7 +238,6 @@ class _StockListPageState extends State<StockListPage> {
             showAddButton: true,
             centerTitle: true,
             onAddPressed: () => _navigateToAddEdit(),
-            onLogoTap: _selectLogo,
           ),
           body: CustomScrollView(
             // iOS refresh için gerekli physics

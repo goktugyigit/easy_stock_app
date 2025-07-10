@@ -487,9 +487,6 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
         showSaveButton: true,
         centerTitle: true,
         onSavePressed: _isLoading ? null : _doSaveForm,
-        onLogoTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logo seçme özelliği yakında!')),
-        ),
       ),
       body: (_isLoading && !_areWarehousesAndShopsLoaded)
           ? const Center(child: CircularProgressIndicator())

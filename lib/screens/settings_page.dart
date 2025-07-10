@@ -118,9 +118,6 @@ class _SettingsPageState extends State<SettingsPage> {
         showSaveButton: true,
         centerTitle: true,
         onSavePressed: _isLoading ? null : _saveSettings,
-        onLogoTap: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logo seçme özelliği yakında!')),
-        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

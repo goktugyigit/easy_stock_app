@@ -15,7 +15,6 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isSearchFocused;
   final String searchHint;
   final List<Widget>? additionalActions;
-  final VoidCallback? onLogoTap; // Logo tıklama için
 
   // Yeni parametreler
   final bool showBackButton;
@@ -40,7 +39,6 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
     this.isSearchFocused = false,
     this.searchHint = 'Ara...',
     this.additionalActions,
-    this.onLogoTap,
     this.showBackButton = false,
     this.onBackPressed,
     this.showSaveButton = false,
@@ -69,9 +67,6 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min, // Overflow önlemek için
           children: [
-            // KURUMSAL BRAND HEADER - BEE HESAP (Küçük)
-            _buildCompactCorporateHeader(context),
-
             // SEARCH VE ACTION BUTTONS AREA
             if (showSearchBar)
               _buildSearchWithActionsSection(context)
@@ -342,106 +337,6 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // Kompakt Kurumsal Header - Küçültülmüş versiyon
-  Widget _buildCompactCorporateHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-          horizontal: 20.0, vertical: 6.0), // Daha da küçültüldü
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.2),
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Logo Area - Resim seçilebilir
-          GestureDetector(
-            onTap: onLogoTap,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: const Icon(
-                Icons.add_photo_alternate_outlined,
-                color: Colors.grey,
-                size: 16,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Brand name ve açıklama - Küçük
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Ana brand
-                Row(
-                  children: [
-                    Text(
-                      'Bee Hesap',
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: 16, // Küçültüldü
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      width: 1.5,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
-                    Text(
-                      'Pro',
-                      style: TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontSize: 12, // Küçültüldü
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Service description - Daha küçük yazı
-                Text(
-                  'Yapay Zeka Destekli Ön Muhasebe, Stok Takip, Operasyonel Yönetim, Analiz',
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor,
-                    fontSize: 9, // Küçültüldü
-                    fontWeight: FontWeight.w400,
-                    fontFamily: 'Poppins',
-                    height: 1.1,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // (additionalActions kaldırıldı - header üzerinde buton yok)
-        ],
-      ),
-    );
-  }
-
   // Regular header (diğer sayfalar için)
   Widget _buildRegularHeader(BuildContext context) {
     return Container(
@@ -594,8 +489,7 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
         .padding
         .top;
 
-    // Compact corporate brand header - Daha da küçültüldü
-    height += 45; // 50'den 45'e
+    // Header kaldırıldı - artık yükseklik eklenmez
 
     if (showSearchBar) {
       // Search section height - Daha da küçültüldü
