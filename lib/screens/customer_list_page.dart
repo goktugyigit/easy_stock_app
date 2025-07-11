@@ -246,28 +246,26 @@ class _CustomerListPageState extends State<CustomerListPage> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _buildStatItem(
-              'Toplam Müşteri',
-              provider.totalCustomers.toString(),
-              Icons.people,
-              Colors.blue,
+          Visibility(
+            visible: _filterType != CustomerFilterType.suppliers,
+            child: Expanded(
+              child: _buildStatItem(
+                'Toplam Müşteri',
+                provider.totalCustomers.toString(),
+                Icons.people,
+                Colors.blue,
+              ),
             ),
           ),
-          Expanded(
-            child: _buildStatItem(
-              'Toplam Tedarikçi',
-              provider.totalSuppliers.toString(),
-              Icons.business,
-              Colors.orange.shade400,
-            ),
-          ),
-          Expanded(
-            child: _buildStatItem(
-              'Alacak',
-              '${provider.totalReceivables > 0 ? '+' : ''}${provider.totalReceivables.toStringAsFixed(0)} ₺',
-              Icons.account_balance_wallet,
-              Colors.blue,
+          Visibility(
+            visible: _filterType != CustomerFilterType.customers,
+            child: Expanded(
+              child: _buildStatItem(
+                'Toplam Tedarikçi',
+                provider.totalSuppliers.toString(),
+                Icons.business,
+                Colors.orange.shade400,
+              ),
             ),
           ),
           Expanded(
@@ -275,7 +273,27 @@ class _CustomerListPageState extends State<CustomerListPage> {
               'Borç',
               '${provider.totalPayables > 0 ? '-' : ''}${provider.totalPayables.toStringAsFixed(0)} ₺',
               Icons.account_balance_wallet,
-              Colors.blue,
+              _filterType == CustomerFilterType.suppliers
+                  ? Colors.orange.shade400
+                  : Colors.blue,
+            ),
+          ),
+          Expanded(
+            child: _buildStatItem(
+              'Alacak',
+              '${provider.totalReceivables > 0 ? '+' : ''}${provider.totalReceivables.toStringAsFixed(0)} ₺',
+              Icons.account_balance_wallet,
+              _filterType == CustomerFilterType.suppliers
+                  ? Colors.orange.shade400
+                  : Colors.blue,
+            ),
+          ),
+          Expanded(
+            child: _buildStatItem(
+              'Bakiye',
+              '${(provider.totalReceivables - provider.totalPayables).toStringAsFixed(0)} ₺',
+              Icons.account_balance_wallet,
+              Colors.red,
             ),
           ),
         ],

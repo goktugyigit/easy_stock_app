@@ -72,6 +72,36 @@ class CustomerProvider with ChangeNotifier {
     }
   }
 
+  // Sonraki müşteri numarasını al
+  String _getNextCustomerNumber() {
+    final existingCustomers = customersOnly;
+    if (existingCustomers.isEmpty) return '1';
+
+    int maxNumber = 0;
+    for (final customer in existingCustomers) {
+      if (customer.customerNumber != null) {
+        final number = int.tryParse(customer.customerNumber!) ?? 0;
+        if (number > maxNumber) maxNumber = number;
+      }
+    }
+    return (maxNumber + 1).toString();
+  }
+
+  // Sonraki tedarikçi numarasını al
+  String _getNextSupplierNumber() {
+    final existingSuppliers = suppliersOnly;
+    if (existingSuppliers.isEmpty) return '1';
+
+    int maxNumber = 0;
+    for (final supplier in existingSuppliers) {
+      if (supplier.supplierNumber != null) {
+        final number = int.tryParse(supplier.supplierNumber!) ?? 0;
+        if (number > maxNumber) maxNumber = number;
+      }
+    }
+    return (maxNumber + 1).toString();
+  }
+
   // Yeni cari ekle
   Future<void> addCustomer({
     required String name,
@@ -80,10 +110,26 @@ class CustomerProvider with ChangeNotifier {
     String? email,
     String? address,
     required CustomerType type,
+    String? customerNumber,
+    String? supplierNumber,
     double balance = 0.0,
     String? notes,
   }) async {
     try {
+      // Otomatik numara oluştur (eğer verilmemişse)
+      String? finalCustomerNumber = customerNumber;
+      String? finalSupplierNumber = supplierNumber;
+
+      if (type == CustomerType.customer &&
+          (customerNumber == null || customerNumber.isEmpty)) {
+        finalCustomerNumber = _getNextCustomerNumber();
+      }
+
+      if (type == CustomerType.supplier &&
+          (supplierNumber == null || supplierNumber.isEmpty)) {
+        finalSupplierNumber = _getNextSupplierNumber();
+      }
+
       final newCustomer = Customer(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
@@ -92,6 +138,8 @@ class CustomerProvider with ChangeNotifier {
         email: email,
         address: address,
         type: type,
+        customerNumber: finalCustomerNumber,
+        supplierNumber: finalSupplierNumber,
         balance: balance,
         notes: notes,
         createdDate: DateTime.now(),
@@ -115,6 +163,8 @@ class CustomerProvider with ChangeNotifier {
     String? email,
     String? address,
     required CustomerType type,
+    String? customerNumber,
+    String? supplierNumber,
     double? balance,
     String? notes,
   }) async {
@@ -129,6 +179,8 @@ class CustomerProvider with ChangeNotifier {
           email: email,
           address: address,
           type: type,
+          customerNumber: customerNumber,
+          supplierNumber: supplierNumber,
           balance: balance,
           notes: notes,
         );
@@ -235,6 +287,7 @@ class CustomerProvider with ChangeNotifier {
           email: 'ali@example.com',
           address: 'Atatürk Mah. No:15 Kadıköy/İstanbul',
           type: CustomerType.customer,
+          customerNumber: '1',
           balance: 1250.75,
           notes: 'Düzenli müşteri',
           createdDate: DateTime.now().subtract(const Duration(days: 30)),
@@ -248,6 +301,7 @@ class CustomerProvider with ChangeNotifier {
           email: 'ayse@example.com',
           address: 'Çamlıca Sok. No:8 Üsküdar/İstanbul',
           type: CustomerType.customer,
+          customerNumber: '2',
           balance: -500.0,
           notes: 'Vadeli alışveriş yapıyor',
           createdDate: DateTime.now().subtract(const Duration(days: 45)),
@@ -262,6 +316,7 @@ class CustomerProvider with ChangeNotifier {
           email: 'info@abc.com',
           address: 'Levent Mah. Büyükdere Cad. No:100 Şişli/İstanbul',
           type: CustomerType.supplier,
+          supplierNumber: '1',
           balance: -2750.0,
           notes: 'Ana tedarikçimiz',
           createdDate: DateTime.now().subtract(const Duration(days: 60)),

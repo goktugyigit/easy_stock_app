@@ -1,6 +1,7 @@
 // lib/screens/add_edit_customer_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:another_flushbar/flushbar.dart';
 import '../models/customer.dart';
 import '../providers/customer_provider.dart';
 import '../widgets/corporate_header.dart';
@@ -17,6 +18,8 @@ class AddEditCustomerPage extends StatefulWidget {
 class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _customerNumberController = TextEditingController();
+  final _supplierNumberController = TextEditingController();
   final _taxNumberController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -29,6 +32,53 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
 
   bool get _isEditing => widget.customer != null;
 
+  void _showStyledFlushbar(BuildContext context, String message,
+      {bool isError = false}) {
+    Flushbar(
+      messageText: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      forwardAnimationCurve: Curves.elasticOut,
+      reverseAnimationCurve: Curves.fastOutSlowIn,
+      backgroundColor: Colors.grey[900]!,
+      borderRadius: BorderRadius.circular(12.0),
+      margin: const EdgeInsets.only(
+        bottom: 1.0,
+        left: 20,
+        right: 20,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.3),
+          offset: const Offset(0, 2),
+          blurRadius: 10,
+        ),
+      ],
+      duration: const Duration(seconds: 3),
+      animationDuration: const Duration(milliseconds: 400),
+      isDismissible: true,
+    ).show(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +86,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
     if (_isEditing) {
       final customer = widget.customer!;
       _nameController.text = customer.name;
+      _customerNumberController.text = customer.customerNumber ?? '';
+      _supplierNumberController.text = customer.supplierNumber ?? '';
       _taxNumberController.text = customer.taxNumber ?? '';
       _phoneController.text = customer.phone ?? '';
       _emailController.text = customer.email ?? '';
@@ -51,6 +103,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _customerNumberController.dispose();
+    _supplierNumberController.dispose();
     _taxNumberController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -72,6 +126,12 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
         await provider.updateCustomer(
           id: widget.customer!.id,
           name: _nameController.text.trim(),
+          customerNumber: _customerNumberController.text.trim().isEmpty
+              ? null
+              : _customerNumberController.text.trim(),
+          supplierNumber: _supplierNumberController.text.trim().isEmpty
+              ? null
+              : _supplierNumberController.text.trim(),
           taxNumber: _taxNumberController.text.trim().isEmpty
               ? null
               : _taxNumberController.text.trim(),
@@ -93,6 +153,12 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       } else {
         await provider.addCustomer(
           name: _nameController.text.trim(),
+          customerNumber: _customerNumberController.text.trim().isEmpty
+              ? null
+              : _customerNumberController.text.trim(),
+          supplierNumber: _supplierNumberController.text.trim().isEmpty
+              ? null
+              : _supplierNumberController.text.trim(),
           taxNumber: _taxNumberController.text.trim().isEmpty
               ? null
               : _taxNumberController.text.trim(),
@@ -114,23 +180,22 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isEditing
-                ? 'Cari başarıyla güncellendi'
-                : 'Cari başarıyla eklendi'),
-            backgroundColor: Colors.green,
-          ),
-        );
         Navigator.of(context).pop();
+        Future.delayed(Duration(milliseconds: 100), () {
+          _showStyledFlushbar(
+            context,
+            _isEditing
+                ? 'Cari başarıyla güncellendi'
+                : 'Cari başarıyla eklendi',
+          );
+        });
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $error'),
-            backgroundColor: Colors.red,
-          ),
+        _showStyledFlushbar(
+          context,
+          'Hata: $error',
+          isError: true,
         );
       }
     } finally {
@@ -332,6 +397,25 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20),
+
+                // Müşteri/Tedarikçi Numarası (dinamik olarak görünür)
+                if (_selectedType == CustomerType.customer)
+                  _buildTextInput(
+                    label: 'Müşteri Numarası',
+                    controller: _customerNumberController,
+                    icon: Icons.numbers,
+                    keyboardType: TextInputType.number,
+                    hintText: 'Boş bırakılırsa otomatik oluşturulur',
+                  ),
+                if (_selectedType == CustomerType.supplier)
+                  _buildTextInput(
+                    label: 'Tedarikçi Numarası',
+                    controller: _supplierNumberController,
+                    icon: Icons.numbers,
+                    keyboardType: TextInputType.number,
+                    hintText: 'Boş bırakılırsa otomatik oluşturulur',
+                  ),
                 const SizedBox(height: 20),
 
                 // Vergi Numarası

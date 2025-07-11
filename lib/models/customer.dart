@@ -7,6 +7,8 @@ class Customer {
   final String? email; // E-posta
   final String? address; // Adres
   final CustomerType type; // Müşteri/Tedarikçi
+  final String? customerNumber; // Müşteri Numarası
+  final String? supplierNumber; // Tedarikçi Numarası
   final double balance; // Bakiye (+ alacak, - borç)
   final String? notes; // Notlar
   final DateTime createdDate; // Oluşturulma Tarihi
@@ -20,6 +22,8 @@ class Customer {
     this.email,
     this.address,
     required this.type,
+    this.customerNumber,
+    this.supplierNumber,
     this.balance = 0.0,
     this.notes,
     required this.createdDate,
@@ -39,6 +43,8 @@ class Customer {
         (e) => e.toString() == 'CustomerType.${json['type']}',
         orElse: () => CustomerType.customer,
       ),
+      customerNumber: json['customerNumber'] as String?,
+      supplierNumber: json['supplierNumber'] as String?,
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'] as String?,
       createdDate: DateTime.parse(json['createdDate'] as String),
@@ -58,6 +64,8 @@ class Customer {
       'email': email,
       'address': address,
       'type': type.toString().split('.').last,
+      'customerNumber': customerNumber,
+      'supplierNumber': supplierNumber,
       'balance': balance,
       'notes': notes,
       'createdDate': createdDate.toIso8601String(),
@@ -74,6 +82,8 @@ class Customer {
     String? email,
     String? address,
     CustomerType? type,
+    String? customerNumber,
+    String? supplierNumber,
     double? balance,
     String? notes,
     DateTime? createdDate,
@@ -87,6 +97,8 @@ class Customer {
       email: email ?? this.email,
       address: address ?? this.address,
       type: type ?? this.type,
+      customerNumber: customerNumber ?? this.customerNumber,
+      supplierNumber: supplierNumber ?? this.supplierNumber,
       balance: balance ?? this.balance,
       notes: notes ?? this.notes,
       createdDate: createdDate ?? this.createdDate,
