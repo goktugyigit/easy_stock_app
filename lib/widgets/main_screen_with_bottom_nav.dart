@@ -260,7 +260,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
             _pulseAnimations[index],
           ]),
           builder: (context, child) {
-            return Container(
+            return SizedBox(
               height: navBarHeight,
               child: Center(
                 child: Stack(

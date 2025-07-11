@@ -1,6 +1,7 @@
 // lib/screens/customer_list_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:another_flushbar/flushbar.dart';
 import '../models/customer.dart';
 import '../providers/customer_provider.dart';
 import '../widgets/customer_card.dart';
@@ -8,7 +9,6 @@ import './add_edit_customer_page.dart';
 import './customer_detail_page.dart';
 
 enum CustomerFilterType {
-  all,
   customers,
   suppliers,
 }
@@ -19,7 +19,7 @@ class CustomerListPage extends StatefulWidget {
 
   const CustomerListPage({
     super.key,
-    this.initialFilter = CustomerFilterType.all,
+    this.initialFilter = CustomerFilterType.customers,
     this.title,
   });
 
@@ -29,7 +29,7 @@ class CustomerListPage extends StatefulWidget {
 
 class _CustomerListPageState extends State<CustomerListPage> {
   final TextEditingController _searchController = TextEditingController();
-  CustomerFilterType _filterType = CustomerFilterType.all;
+  CustomerFilterType _filterType = CustomerFilterType.customers;
   bool _isLoading = false;
 
   @override
@@ -57,11 +57,10 @@ class _CustomerListPageState extends State<CustomerListPage> {
           .fetchAndSetCustomers(forceFetch: true);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cariler yüklenirken hata: $error'),
-            backgroundColor: Colors.red,
-          ),
+        _showStyledFlushbar(
+          context,
+          'Cariler yüklenirken hata: $error',
+          isError: true,
         );
       }
     } finally {
@@ -101,20 +100,17 @@ class _CustomerListPageState extends State<CustomerListPage> {
             .deleteCustomer(customer.id);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cari başarıyla silindi'),
-              backgroundColor: Colors.green,
-            ),
+          _showStyledFlushbar(
+            context,
+            'Cari başarıyla silindi',
           );
         }
       } catch (error) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Silme hatası: $error'),
-              backgroundColor: Colors.red,
-            ),
+          _showStyledFlushbar(
+            context,
+            'Silme hatası: $error',
+            isError: true,
           );
         }
       }
@@ -131,9 +127,6 @@ class _CustomerListPageState extends State<CustomerListPage> {
       case CustomerFilterType.suppliers:
         filterType = CustomerType.supplier;
         break;
-      case CustomerFilterType.all:
-        filterType = null;
-        break;
     }
 
     return provider.searchCustomers(
@@ -147,11 +140,14 @@ class _CustomerListPageState extends State<CustomerListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
-          _buildFilterChip('Tümü', CustomerFilterType.all),
-          const SizedBox(width: 8),
-          _buildFilterChip('Müşteriler', CustomerFilterType.customers),
-          const SizedBox(width: 8),
-          _buildFilterChip('Tedarikçiler', CustomerFilterType.suppliers),
+          Expanded(
+            child: _buildFilterChip('Müşteriler', CustomerFilterType.customers),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child:
+                _buildFilterChip('Tedarikçiler', CustomerFilterType.suppliers),
+          ),
         ],
       ),
     );
@@ -159,23 +155,47 @@ class _CustomerListPageState extends State<CustomerListPage> {
 
   Widget _buildFilterChip(String label, CustomerFilterType type) {
     final isSelected = _filterType == type;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        if (selected) {
-          setState(() => _filterType = type);
-        }
-      },
-      selectedColor: Colors.blue.withValues(alpha: 0.3),
-      checkmarkColor: Colors.blue,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.blue : Colors.white70,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
-      backgroundColor: Colors.grey[800],
-      side: BorderSide(
-        color: isSelected ? Colors.blue : Colors.grey[600]!,
+    IconData icon =
+        type == CustomerFilterType.customers ? Icons.person : Icons.business;
+
+    // Müşteriler için mavi, tedarikçiler için turuncu renk
+    Color activeColor = type == CustomerFilterType.customers
+        ? Colors.blue
+        : Colors.orange.shade400;
+
+    return GestureDetector(
+      onTap: () => setState(() => _filterType = type),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.2)
+              : Colors.grey[850],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? activeColor : Colors.grey[600]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? activeColor : Colors.white70,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? activeColor : Colors.white70,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -239,28 +259,76 @@ class _CustomerListPageState extends State<CustomerListPage> {
               'Toplam Tedarikçi',
               provider.totalSuppliers.toString(),
               Icons.business,
-              Colors.green,
+              Colors.orange.shade400,
             ),
           ),
           Expanded(
             child: _buildStatItem(
               'Alacak',
-              '+${provider.totalReceivables.toStringAsFixed(0)} ₺',
-              Icons.trending_up,
-              Colors.green,
+              '${provider.totalReceivables > 0 ? '+' : ''}${provider.totalReceivables.toStringAsFixed(0)} ₺',
+              Icons.account_balance_wallet,
+              Colors.blue,
             ),
           ),
           Expanded(
             child: _buildStatItem(
               'Borç',
-              '-${provider.totalPayables.toStringAsFixed(0)} ₺',
-              Icons.trending_down,
-              Colors.red,
+              '${provider.totalPayables > 0 ? '-' : ''}${provider.totalPayables.toStringAsFixed(0)} ₺',
+              Icons.account_balance_wallet,
+              Colors.blue,
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _showStyledFlushbar(BuildContext context, String message,
+      {Widget? mainButton, bool isError = false}) {
+    Flushbar(
+      messageText: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.info_outline,
+            color: isError ? Colors.red : Colors.blue,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+      mainButton: mainButton,
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      forwardAnimationCurve: Curves.elasticOut,
+      reverseAnimationCurve: Curves.fastOutSlowIn,
+      backgroundColor: Colors.grey[900]!,
+      borderRadius: BorderRadius.circular(12.0),
+      margin: const EdgeInsets.only(
+        bottom: 1.0,
+        left: 20,
+        right: 20,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.3),
+          offset: const Offset(0, 2),
+          blurRadius: 10,
+        ),
+      ],
+      duration: const Duration(seconds: 4),
+      animationDuration: const Duration(milliseconds: 400),
+      isDismissible: true,
+    ).show(context);
   }
 
   Widget _buildStatItem(
