@@ -24,7 +24,9 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
-  final _balanceController = TextEditingController();
+  // Başlangıç Borcu ve Alacağı için ayrı controller'lar
+  final _initialDebtController = TextEditingController();
+  final _initialCreditController = TextEditingController();
   final _notesController = TextEditingController();
 
   CustomerType _selectedType = CustomerType.customer;
@@ -92,11 +94,18 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       _phoneController.text = customer.phone ?? '';
       _emailController.text = customer.email ?? '';
       _addressController.text = customer.address ?? '';
-      _balanceController.text = customer.balance.toString();
-      _notesController.text = customer.notes ?? '';
+      // Varolan bakiyeyi borç/alacak alanlarına dağıt
+      if (customer.balance < 0) {
+        _initialDebtController.text = customer.balance.abs().toString();
+        _initialCreditController.text = '0';
+      } else {
+        _initialDebtController.text = '0';
+        _initialCreditController.text = customer.balance.toString();
+      }
       _selectedType = customer.type;
     } else {
-      _balanceController.text = '0';
+      _initialDebtController.text = '0';
+      _initialCreditController.text = '0';
     }
   }
 
@@ -109,7 +118,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
-    _balanceController.dispose();
+    _initialDebtController.dispose();
+    _initialCreditController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -145,7 +155,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
               ? null
               : _addressController.text.trim(),
           type: _selectedType,
-          balance: double.tryParse(_balanceController.text) ?? 0.0,
+          initialDebt: double.tryParse(_initialDebtController.text) ?? 0.0,
+          initialCredit: double.tryParse(_initialCreditController.text) ?? 0.0,
           notes: _notesController.text.trim().isEmpty
               ? null
               : _notesController.text.trim(),
@@ -172,7 +183,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
               ? null
               : _addressController.text.trim(),
           type: _selectedType,
-          balance: double.tryParse(_balanceController.text) ?? 0.0,
+          initialDebt: double.tryParse(_initialDebtController.text) ?? 0.0,
+          initialCredit: double.tryParse(_initialCreditController.text) ?? 0.0,
           notes: _notesController.text.trim().isEmpty
               ? null
               : _notesController.text.trim(),
@@ -204,6 +216,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       }
     }
   }
+
+  // Artık balance hesaplaması model içinde yapılacak
 
   Widget _buildTextInput({
     required String label,
@@ -424,15 +438,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
                   controller: _taxNumberController,
                   icon: Icons.business_center,
                   keyboardType: TextInputType.number,
-                  hintText: '10 haneli vergi numarası',
-                  validator: (value) {
-                    if (value != null && value.trim().isNotEmpty) {
-                      if (value.trim().length != 10) {
-                        return 'Vergi numarası 10 haneli olmalıdır';
-                      }
-                    }
-                    return null;
-                  },
+                  hintText: 'Vergi veya T.C. kimlik numarası',
+                  validator: null,
                 ),
                 const SizedBox(height: 20),
 
@@ -475,13 +482,31 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Başlangıç Bakiyesi
+                // Başlangıç Borcu
                 _buildTextInput(
-                  label: 'Başlangıç Bakiyesi (₺)',
-                  controller: _balanceController,
-                  icon: Icons.account_balance_wallet,
+                  label: 'Başlangıç Borcu (₺)',
+                  controller: _initialDebtController,
+                  icon: Icons.trending_down,
                   keyboardType: TextInputType.number,
-                  hintText: 'Pozitif: Alacak, Negatif: Borç',
+                  hintText: '0',
+                  validator: (value) {
+                    if (value != null && value.trim().isNotEmpty) {
+                      if (double.tryParse(value.trim()) == null) {
+                        return 'Geçerli bir sayı girin';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Başlangıç Alacağı
+                _buildTextInput(
+                  label: 'Başlangıç Alacağı (₺)',
+                  controller: _initialCreditController,
+                  icon: Icons.trending_up,
+                  keyboardType: TextInputType.number,
+                  hintText: '0',
                   validator: (value) {
                     if (value != null && value.trim().isNotEmpty) {
                       if (double.tryParse(value.trim()) == null) {

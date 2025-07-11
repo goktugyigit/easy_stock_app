@@ -154,58 +154,111 @@ class CustomerDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Bakiye Gösterimi
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: customer.hasDebt
-                          ? Colors.red.withValues(alpha: 0.1)
-                          : customer.hasCredit
-                              ? Colors.green.withValues(alpha: 0.1)
-                              : Colors.grey.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: customer.hasDebt
-                            ? Colors.red.withValues(alpha: 0.3)
-                            : customer.hasCredit
-                                ? Colors.green.withValues(alpha: 0.3)
-                                : Colors.grey.withValues(alpha: 0.3),
+                  // Borç, Alacak, Bakiye Gösterimi
+                  Row(
+                    children: [
+                      // Borç
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'BORÇ',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${customer.debtAmount.toStringAsFixed(2)} ₺',
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          customer.hasDebt
-                              ? 'BORÇ'
-                              : customer.hasCredit
-                                  ? 'ALACAK'
-                                  : 'BAKİYE',
-                          style: TextStyle(
-                            color: customer.hasDebt
-                                ? Colors.red
-                                : customer.hasCredit
-                                    ? Colors.green
-                                    : Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                      const SizedBox(width: 8),
+                      // Alacak
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'ALACAK',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${customer.creditAmount.toStringAsFixed(2)} ₺',
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${customer.balanceDisplay} ₺',
-                          style: TextStyle(
-                            color: customer.hasDebt
-                                ? Colors.red
-                                : customer.hasCredit
-                                    ? Colors.green
-                                    : Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(width: 8),
+                      // Bakiye
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: Colors.red.withOpacity(0.3)),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'BAKİYE',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${customer.balanceDisplay} ₺',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),

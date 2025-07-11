@@ -9,7 +9,9 @@ class Customer {
   final CustomerType type; // Müşteri/Tedarikçi
   final String? customerNumber; // Müşteri Numarası
   final String? supplierNumber; // Tedarikçi Numarası
-  final double balance; // Bakiye (+ alacak, - borç)
+  final double initialDebt; // Başlangıç Borcu
+  final double initialCredit; // Başlangıç Alacağı
+  final double balance; // Alacak - Borç
   final String? notes; // Notlar
   final DateTime createdDate; // Oluşturulma Tarihi
   final DateTime? lastTransactionDate; // Son İşlem Tarihi
@@ -24,11 +26,16 @@ class Customer {
     required this.type,
     this.customerNumber,
     this.supplierNumber,
-    this.balance = 0.0,
+    this.initialDebt = 0.0,
+    this.initialCredit = 0.0,
+    double? balance,
     this.notes,
     required this.createdDate,
     this.lastTransactionDate,
-  });
+  }) : balance = balance ??
+            ((type == CustomerType.customer)
+                ? (initialDebt - initialCredit)
+                : (initialCredit - initialDebt));
 
   // JSON'dan Customer nesnesi oluşturma
   factory Customer.fromJson(Map<String, dynamic> json) {
@@ -45,7 +52,18 @@ class Customer {
       ),
       customerNumber: json['customerNumber'] as String?,
       supplierNumber: json['supplierNumber'] as String?,
-      balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      initialDebt: (json['initialDebt'] as num?)?.toDouble() ?? 0.0,
+      initialCredit: (json['initialCredit'] as num?)?.toDouble() ?? 0.0,
+      balance: (json['balance'] as num?)?.toDouble() ??
+          ((CustomerType.values.firstWhere(
+                    (e) => e.toString() == 'CustomerType.${json['type']}',
+                    orElse: () => CustomerType.customer,
+                  ) ==
+                  CustomerType.customer)
+              ? (((json['initialDebt'] as num?)?.toDouble() ?? 0.0) -
+                  ((json['initialCredit'] as num?)?.toDouble() ?? 0.0))
+              : (((json['initialCredit'] as num?)?.toDouble() ?? 0.0) -
+                  ((json['initialDebt'] as num?)?.toDouble() ?? 0.0))),
       notes: json['notes'] as String?,
       createdDate: DateTime.parse(json['createdDate'] as String),
       lastTransactionDate: json['lastTransactionDate'] != null
@@ -66,6 +84,8 @@ class Customer {
       'type': type.toString().split('.').last,
       'customerNumber': customerNumber,
       'supplierNumber': supplierNumber,
+      'initialDebt': initialDebt,
+      'initialCredit': initialCredit,
       'balance': balance,
       'notes': notes,
       'createdDate': createdDate.toIso8601String(),
@@ -84,6 +104,8 @@ class Customer {
     CustomerType? type,
     String? customerNumber,
     String? supplierNumber,
+    double? initialDebt,
+    double? initialCredit,
     double? balance,
     String? notes,
     DateTime? createdDate,
@@ -99,7 +121,14 @@ class Customer {
       type: type ?? this.type,
       customerNumber: customerNumber ?? this.customerNumber,
       supplierNumber: supplierNumber ?? this.supplierNumber,
-      balance: balance ?? this.balance,
+      initialDebt: initialDebt ?? this.initialDebt,
+      initialCredit: initialCredit ?? this.initialCredit,
+      balance: balance ??
+          ((type ?? this.type) == CustomerType.customer
+              ? ((initialDebt ?? this.initialDebt) -
+                  (initialCredit ?? this.initialCredit))
+              : ((initialCredit ?? this.initialCredit) -
+                  (initialDebt ?? this.initialDebt))),
       notes: notes ?? this.notes,
       createdDate: createdDate ?? this.createdDate,
       lastTransactionDate: lastTransactionDate ?? this.lastTransactionDate,
@@ -123,8 +152,10 @@ class Customer {
   // Getter'lar
   bool get isCustomer => type == CustomerType.customer;
   bool get isSupplier => type == CustomerType.supplier;
-  bool get hasDebt => balance < 0;
-  bool get hasCredit => balance > 0;
+  bool get hasDebt => initialDebt > 0;
+  bool get hasCredit => initialCredit > 0;
+  double get debtAmount => initialDebt;
+  double get creditAmount => initialCredit;
   String get balanceDisplay => balance >= 0
       ? '+${balance.toStringAsFixed(2)}'
       : balance.toStringAsFixed(2);

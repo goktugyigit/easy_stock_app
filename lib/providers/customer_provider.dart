@@ -22,9 +22,23 @@ class CustomerProvider with ChangeNotifier {
   int get totalCustomers => customersOnly.length;
   int get totalSuppliers => suppliersOnly.length;
   double get totalReceivables =>
-      _customers.fold(0.0, (sum, c) => sum + (c.balance > 0 ? c.balance : 0));
-  double get totalPayables => _customers.fold(
-      0.0, (sum, c) => sum + (c.balance < 0 ? c.balance.abs() : 0));
+      _customers.fold(0.0, (sum, c) => sum + (c.creditAmount));
+  double get totalPayables =>
+      _customers.fold(0.0, (sum, c) => sum + (c.debtAmount));
+
+  // Yalnızca müşteriler seçildiğinde kullanılacak toplamlar
+  double get totalCustomerDebts =>
+      customersOnly.fold(0.0, (sum, c) => sum + c.debtAmount);
+  double get totalCustomerCredits =>
+      customersOnly.fold(0.0, (sum, c) => sum + c.creditAmount);
+  double get totalCustomerBalance => totalCustomerDebts - totalCustomerCredits;
+
+  // Yalnız tedarikçiler için toplamlar
+  double get totalSupplierDebts =>
+      suppliersOnly.fold(0.0, (sum, c) => sum + c.debtAmount);
+  double get totalSupplierCredits =>
+      suppliersOnly.fold(0.0, (sum, c) => sum + c.creditAmount);
+  double get totalSupplierBalance => totalSupplierCredits - totalSupplierDebts;
 
   // SharedPreferences key
   static const String _customersKey = 'customers_data';
@@ -105,14 +119,15 @@ class CustomerProvider with ChangeNotifier {
   // Yeni cari ekle
   Future<void> addCustomer({
     required String name,
+    String? customerNumber,
+    String? supplierNumber,
     String? taxNumber,
     String? phone,
     String? email,
     String? address,
     required CustomerType type,
-    String? customerNumber,
-    String? supplierNumber,
-    double balance = 0.0,
+    double initialDebt = 0.0,
+    double initialCredit = 0.0,
     String? notes,
   }) async {
     try {
@@ -140,7 +155,8 @@ class CustomerProvider with ChangeNotifier {
         type: type,
         customerNumber: finalCustomerNumber,
         supplierNumber: finalSupplierNumber,
-        balance: balance,
+        initialDebt: initialDebt,
+        initialCredit: initialCredit,
         notes: notes,
         createdDate: DateTime.now(),
       );
@@ -158,14 +174,15 @@ class CustomerProvider with ChangeNotifier {
   Future<void> updateCustomer({
     required String id,
     required String name,
+    String? customerNumber,
+    String? supplierNumber,
     String? taxNumber,
     String? phone,
     String? email,
     String? address,
     required CustomerType type,
-    String? customerNumber,
-    String? supplierNumber,
-    double? balance,
+    double initialDebt = 0.0,
+    double initialCredit = 0.0,
     String? notes,
   }) async {
     try {
@@ -181,7 +198,8 @@ class CustomerProvider with ChangeNotifier {
           type: type,
           customerNumber: customerNumber,
           supplierNumber: supplierNumber,
-          balance: balance,
+          initialDebt: initialDebt,
+          initialCredit: initialCredit,
           notes: notes,
         );
 

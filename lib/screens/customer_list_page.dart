@@ -271,7 +271,7 @@ class _CustomerListPageState extends State<CustomerListPage> {
           Expanded(
             child: _buildStatItem(
               'Borç',
-              '${provider.totalPayables > 0 ? '-' : ''}${provider.totalPayables.toStringAsFixed(0)} ₺',
+              '${_filterType == CustomerFilterType.customers ? provider.totalCustomerDebts.toStringAsFixed(0) : _filterType == CustomerFilterType.suppliers ? provider.totalSupplierDebts.toStringAsFixed(0) : provider.totalPayables.toStringAsFixed(0)} ₺',
               Icons.account_balance_wallet,
               _filterType == CustomerFilterType.suppliers
                   ? Colors.orange.shade400
@@ -281,7 +281,7 @@ class _CustomerListPageState extends State<CustomerListPage> {
           Expanded(
             child: _buildStatItem(
               'Alacak',
-              '${provider.totalReceivables > 0 ? '+' : ''}${provider.totalReceivables.toStringAsFixed(0)} ₺',
+              '${_filterType == CustomerFilterType.customers ? provider.totalCustomerCredits.toStringAsFixed(0) : _filterType == CustomerFilterType.suppliers ? provider.totalSupplierCredits.toStringAsFixed(0) : provider.totalReceivables.toStringAsFixed(0)} ₺',
               Icons.account_balance_wallet,
               _filterType == CustomerFilterType.suppliers
                   ? Colors.orange.shade400
@@ -291,9 +291,13 @@ class _CustomerListPageState extends State<CustomerListPage> {
           Expanded(
             child: _buildStatItem(
               'Bakiye',
-              '${(provider.totalReceivables - provider.totalPayables).toStringAsFixed(0)} ₺',
+              '${(_filterType == CustomerFilterType.customers ? provider.totalCustomerBalance : _filterType == CustomerFilterType.suppliers ? provider.totalSupplierBalance : (provider.totalReceivables - provider.totalPayables)).toStringAsFixed(0)} ₺',
               Icons.account_balance_wallet,
-              Colors.red,
+              _filterType == CustomerFilterType.customers
+                  ? Colors.blue
+                  : _filterType == CustomerFilterType.suppliers
+                      ? Colors.orange.shade400
+                      : Colors.red,
             ),
           ),
         ],

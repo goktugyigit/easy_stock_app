@@ -32,11 +32,9 @@ class CustomerCard extends StatelessWidget {
               color: Colors.grey[900]?.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(cardRadius),
               border: Border.all(
-                color: customer.hasDebt
-                    ? Colors.red.withValues(alpha: 0.5)
-                    : customer.hasCredit
-                        ? Colors.green.withValues(alpha: 0.5)
-                        : Colors.grey.withValues(alpha: 0.3),
+                color: customer.isCustomer
+                    ? Colors.blue.withOpacity(0.5)
+                    : Colors.orange.withOpacity(0.5),
                 width: 1.5,
               ),
             ),
@@ -108,21 +106,17 @@ class CustomerCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: customer.hasDebt
-                                  ? Colors.red.withValues(alpha: 0.2)
-                                  : customer.hasCredit
-                                      ? Colors.green.withValues(alpha: 0.2)
-                                      : Colors.grey.withValues(alpha: 0.2),
+                              color: customer.isCustomer
+                                  ? Colors.blue.withOpacity(0.2)
+                                  : Colors.orange.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              '${customer.balanceDisplay} ₺',
+                              '${customer.balance >= 0 ? customer.balance.toStringAsFixed(2) : customer.balance.toStringAsFixed(2)} ₺',
                               style: TextStyle(
-                                color: customer.hasDebt
-                                    ? Colors.red
-                                    : customer.hasCredit
-                                        ? Colors.green
-                                        : Colors.white70,
+                                color: customer.isCustomer
+                                    ? Colors.blue
+                                    : Colors.orange,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
