@@ -18,11 +18,13 @@ class StokYonetPage extends StatelessWidget {
         children: <Widget>[
           ActionCard(
             imagePath: 'assets/images/add_stock_icon.png', // KENDİ RESİM YOLUNU GİR
-            title: 'Stok Ekle',
+            title: 'Stok Kartı Oluştur',
             onTap: () {
               // AddEditStockPage'i kök navigator'a push et (BottomNav gizlenecek)
               Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(builder: (context) => const AddEditStockPage()),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const AddEditStockPage(showQuantityField: false)),
               ).then((_) {
                 // Geri dönüldüğünde bir işlem yapmak istersen
               });
