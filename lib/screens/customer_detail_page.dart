@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/customer.dart';
 import './add_edit_customer_page.dart';
 import './customer_statement_page.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class CustomerDetailPage extends StatelessWidget {
   final Customer customer;
@@ -34,6 +35,53 @@ class CustomerDetailPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showStyledFlushbar(BuildContext context, String message,
+      {bool isError = false}) {
+    Flushbar(
+      messageText: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      forwardAnimationCurve: Curves.elasticOut,
+      reverseAnimationCurve: Curves.fastOutSlowIn,
+      backgroundColor: Colors.grey[900]!,
+      borderRadius: BorderRadius.circular(12.0),
+      margin: const EdgeInsets.only(
+        bottom: 20.0,
+        left: 20,
+        right: 20,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          offset: const Offset(0, 2),
+          blurRadius: 10,
+        ),
+      ],
+      duration: const Duration(seconds: 3),
+      animationDuration: const Duration(milliseconds: 400),
+      isDismissible: true,
+    ).show(context);
   }
 
   Widget _buildInfoRow(String label, String? value, IconData icon) {
@@ -76,12 +124,17 @@ class CustomerDetailPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
+            onPressed: () async {
+              final result =
+                  await Navigator.of(context, rootNavigator: true).push<String>(
                 MaterialPageRoute(
                   builder: (_) => AddEditCustomerPage(customer: customer),
                 ),
               );
+              if (result != null && result.isNotEmpty) {
+                // mounted check is not needed in StatelessWidget's build method context
+                _showStyledFlushbar(context, result);
+              }
             },
           ),
           IconButton(

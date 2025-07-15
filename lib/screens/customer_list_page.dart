@@ -335,7 +335,7 @@ class _CustomerListPageState extends State<CustomerListPage> {
       backgroundColor: Colors.grey[900]!,
       borderRadius: BorderRadius.circular(12.0),
       margin: const EdgeInsets.only(
-        bottom: 1.0,
+        bottom: kBottomNavigationBarHeight + 3.0,
         left: 20,
         right: 20,
       ),

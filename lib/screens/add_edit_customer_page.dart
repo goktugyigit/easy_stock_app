@@ -63,7 +63,7 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       backgroundColor: Colors.grey[900]!,
       borderRadius: BorderRadius.circular(12.0),
       margin: const EdgeInsets.only(
-        bottom: 1.0,
+        bottom: 20.0,
         left: 20,
         right: 20,
       ),
@@ -192,15 +192,9 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       }
 
       if (mounted) {
-        Navigator.of(context).pop();
-        Future.delayed(Duration(milliseconds: 100), () {
-          _showStyledFlushbar(
-            context,
-            _isEditing
-                ? 'Cari başarıyla güncellendi'
-                : 'Cari başarıyla eklendi',
-          );
-        });
+        Navigator.of(context).pop(
+          _isEditing ? 'Cari başarıyla güncellendi' : 'Cari başarıyla eklendi',
+        );
       }
     } catch (error) {
       if (mounted) {
