@@ -107,10 +107,21 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       _initialDebtController.text = '0';
       _initialCreditController.text = '0';
     }
+
+    _nameController.addListener(_updatePreview);
+    _customerNumberController.addListener(_updatePreview);
+    _supplierNumberController.addListener(_updatePreview);
+    _phoneController.addListener(_updatePreview);
+    _emailController.addListener(_updatePreview);
   }
 
   @override
   void dispose() {
+    _nameController.removeListener(_updatePreview);
+    _customerNumberController.removeListener(_updatePreview);
+    _supplierNumberController.removeListener(_updatePreview);
+    _phoneController.removeListener(_updatePreview);
+    _emailController.removeListener(_updatePreview);
     _nameController.dispose();
     _customerNumberController.dispose();
     _supplierNumberController.dispose();
@@ -122,6 +133,10 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
     _initialCreditController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  void _updatePreview() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _saveCustomer() async {
@@ -370,6 +385,54 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
     );
   }
 
+  Widget _buildInfoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[700]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _nameController.text.isEmpty ? 'Yeni Cari' : _nameController.text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (_selectedType == CustomerType.customer &&
+              _customerNumberController.text.isNotEmpty)
+            Text(
+              'Müşteri No: ${_customerNumberController.text}',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          if (_selectedType == CustomerType.supplier &&
+              _supplierNumberController.text.isNotEmpty)
+            Text(
+              'Tedarikçi No: ${_supplierNumberController.text}',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          if (_phoneController.text.isNotEmpty)
+            Text(
+              'Telefon: ${_phoneController.text}',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          if (_emailController.text.isNotEmpty)
+            Text(
+              'E-posta: ${_emailController.text}',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -390,6 +453,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
               children: [
                 // Cari Türü
                 _buildTypeSelector(),
+                const SizedBox(height: 16),
+                _buildInfoCard(),
                 const SizedBox(height: 24),
 
                 // Ad/Firma Adı

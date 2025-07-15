@@ -13,6 +13,7 @@ import '../models/stock_item.dart';
 import '../models/warehouse_item.dart';
 import '../models/shop_item.dart';
 import '../widgets/corporate_header.dart';
+import './warehouses_shops_page.dart';
 // Eğer barkod/QR tarama butonları aktif edilecekse bu import geri eklenmeli
 // import '../widgets/barcode_scanner_page.dart';
 
@@ -191,6 +192,17 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
     if (!isValid) {
       return;
     }
+    if (_warehouses.isEmpty && _shops.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Kaydetmeden önce en az bir depo veya dükkân oluşturun.'),
+          ),
+        );
+      }
+      return;
+    }
     // _formKey.currentState!.save(); // onSaved kullanmıyorsak gereksiz olabilir
     setState(() {
       _isLoading = true;
@@ -343,7 +355,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                 size: 40, color: Theme.of(context).colorScheme.secondary),
             const SizedBox(height: 10),
             const Text(
-              'Stok ekleyebilmek için lütfen önce bir depo veya dükkan oluşturun.',
+              'Stok eklemek için lütfen önce bir depo veya dükkân oluşturun.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -352,11 +364,10 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
               icon: const Icon(Icons.add_business_outlined),
               label: const Text('Depo/Dükkan Yönetimine Git'),
               onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Lütfen alt navigasyondan "Depo/Mağaza" sekmesine gidin.')),
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => const WarehousesShopsPage(),
+                  ),
                 );
               },
             )

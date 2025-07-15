@@ -16,7 +16,7 @@ class WarehousesShopsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Depolar / Mağazalar'),
+        title: const Text('Depoları ve Dükkanları Yönet'),
         centerTitle: true,
       ),
       body: SafeArea(
