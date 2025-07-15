@@ -330,7 +330,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
     if (!_areWarehousesAndShopsLoaded) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20.0),
-        child: Center(child: Text("Depo/Dükkan listesi yükleniyor...")),
+        child: Center(child: Text('Depo/Dükkan listesi yükleniyor...')),
       );
     }
 
@@ -365,115 +365,55 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
       );
     }
 
-    List<DropdownMenuItem<String>> dropdownItems = [];
-    String? currentSelection;
-    String hintText = "Bir yere ata (Opsiyonel)"; // Daha genel bir hint
+    final List<DropdownMenuItem<String>> dropdownItems = [
+      const DropdownMenuItem(value: '', child: Text('Seçim yapma')),
+      ..._warehouses
+          .map((w) => DropdownMenuItem(value: 'w:${w.id}', child: Text('Depo: ${w.name}')))
+          .toList(),
+      ..._shops
+          .map((s) => DropdownMenuItem(value: 's:${s.id}', child: Text('Dükkan: ${s.name}')))
+          .toList(),
+    ];
 
-    // Önce hangi tipin seçili olduğuna bak
-    if (_assignmentType == AssignmentType.warehouse) {
-      hintText = "Depo Seçin";
-      currentSelection = _selectedWarehouseId;
-      dropdownItems = _warehouses
-          .map((warehouse) => DropdownMenuItem(
-                value: warehouse.id,
-                child: Text(warehouse.name),
-              ))
-          .toList();
-      if (dropdownItems.isEmpty) {
-        dropdownItems.add(const DropdownMenuItem(
-            value: null, enabled: false, child: Text("Uygun depo bulunamadı")));
-      }
-    } else if (_assignmentType == AssignmentType.shop) {
-      hintText = "Dükkan Seçin";
-      currentSelection = _selectedShopId;
-      dropdownItems = _shops
-          .map((shop) => DropdownMenuItem(
-                value: shop.id,
-                child: Text(shop.name),
-              ))
-          .toList();
-      if (dropdownItems.isEmpty) {
-        dropdownItems.add(const DropdownMenuItem(
-            value: null,
-            enabled: false,
-            child: Text("Uygun dükkan bulunamadı")));
-      }
+    String? currentValue;
+    if (_assignmentType == AssignmentType.warehouse && _selectedWarehouseId != null) {
+      currentValue = 'w:${_selectedWarehouseId!}';
+    } else if (_assignmentType == AssignmentType.shop && _selectedShopId != null) {
+      currentValue = 's:${_selectedShopId!}';
+    } else {
+      currentValue = '';
     }
-    // Eğer _assignmentType == AssignmentType.none ise, dropdownItems boş kalır ve hintText genel olur.
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        Text("Stoğu Ata:", style: Theme.of(context).textTheme.titleMedium),
-        Row(
-          children: [
-            Expanded(
-              child: RadioListTile<AssignmentType>(
-                title: const Text('Depoya'),
-                value: AssignmentType.warehouse,
-                groupValue: _assignmentType,
-                onChanged: (_warehouses.isEmpty)
-                    ? null
-                    : (AssignmentType? value) {
-                        // Depo yoksa disable
-                        setState(() {
-                          if (value == AssignmentType.warehouse) {
-                            _assignmentType = AssignmentType.warehouse;
-                            _selectedShopId = null; // Diğer seçimi temizle
-                            _selectedWarehouseId =
-                                null; // Dropdown için ilk seçimi temizle
-                          }
-                        });
-                      },
-              ),
-            ),
-            Expanded(
-              child: RadioListTile<AssignmentType>(
-                title: const Text('Dükkana'),
-                value: AssignmentType.shop,
-                groupValue: _assignmentType,
-                onChanged: (_shops.isEmpty)
-                    ? null
-                    : (AssignmentType? value) {
-                        // Dükkan yoksa disable
-                        setState(() {
-                          if (value == AssignmentType.shop) {
-                            _assignmentType = AssignmentType.shop;
-                            _selectedWarehouseId = null; // Diğer seçimi temizle
-                            _selectedShopId =
-                                null; // Dropdown için ilk seçimi temizle
-                          }
-                        });
-                      },
-              ),
-            ),
-          ],
-        ),
-        if (_assignmentType != AssignmentType.none)
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: hintText,
-              border: const OutlineInputBorder(),
-            ),
-            value: currentSelection,
-            hint: Text(hintText),
-            isExpanded: true,
-            items: dropdownItems,
-            onChanged: (dropdownItems.length == 1 &&
-                    dropdownItems.first.enabled ==
-                        false) // Eğer sadece "bulunamadı" item'ı varsa disable
-                ? null
-                : (String? newValue) {
-                    setState(() {
-                      if (_assignmentType == AssignmentType.warehouse) {
-                        _selectedWarehouseId = newValue;
-                      } else if (_assignmentType == AssignmentType.shop) {
-                        _selectedShopId = newValue;
-                      }
-                    });
-                  },
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          decoration: const InputDecoration(
+            labelText: 'Depo/Dükkan (Opsiyonel)',
+            border: OutlineInputBorder(),
           ),
+          value: currentValue,
+          isExpanded: true,
+          items: dropdownItems,
+          onChanged: (String? value) {
+            setState(() {
+              if (value == null || value.isEmpty) {
+                _assignmentType = AssignmentType.none;
+                _selectedWarehouseId = null;
+                _selectedShopId = null;
+              } else if (value.startsWith('w:')) {
+                _assignmentType = AssignmentType.warehouse;
+                _selectedWarehouseId = value.substring(2);
+                _selectedShopId = null;
+              } else if (value.startsWith('s:')) {
+                _assignmentType = AssignmentType.shop;
+                _selectedWarehouseId = null;
+                _selectedShopId = value.substring(2);
+              }
+            });
+          },
+        ),
       ],
     );
   }
