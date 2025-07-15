@@ -20,8 +20,9 @@ enum AssignmentType { none, warehouse, shop }
 
 class AddEditStockPage extends StatefulWidget {
   final String? existingItemId;
+  final bool showQuantityField;
 
-  const AddEditStockPage({super.key, this.existingItemId});
+  const AddEditStockPage({super.key, this.existingItemId, this.showQuantityField = true});
 
   @override
   State<AddEditStockPage> createState() => _AddEditStockPageState();
@@ -481,8 +482,9 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CorporateHeader(
-        title:
-            widget.existingItemId == null ? 'Yeni Stok Ekle' : 'Stok Düzenle',
+        title: widget.existingItemId == null
+            ? (widget.showQuantityField ? 'Yeni Stok Ekle' : 'Stok Kartı Oluştur')
+            : 'Stok Düzenle',
         showBackButton: true,
         showSaveButton: true,
         centerTitle: true,
@@ -527,27 +529,30 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                             ? 'Stok adı zorunludur.'
                             : null),
                     const SizedBox(height: 12),
-                    TextFormField(
-                        controller: _quantityController,
-                        decoration: const InputDecoration(
-                            labelText: 'Miktar (*)',
-                            border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        textInputAction: TextInputAction.next,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Miktar zorunludur.';
-                          }
-                          final n = int.tryParse(v);
-                          if (n == null || n < 0) {
-                            return 'Geçerli pozitif bir miktar girin.';
-                          }
-                          return null;
-                        }),
-                    const SizedBox(height: 12),
+                    if (widget.showQuantityField) ...[
+                      TextFormField(
+                          controller: _quantityController,
+                          decoration: const InputDecoration(
+                              labelText: 'Miktar (*)',
+                              border: OutlineInputBorder()),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          textInputAction: TextInputAction.next,
+                          validator: (v) {
+                            if (!widget.showQuantityField) return null;
+                            if (v == null || v.isEmpty) {
+                              return 'Miktar zorunludur.';
+                            }
+                            final n = int.tryParse(v);
+                            if (n == null || n < 0) {
+                              return 'Geçerli pozitif bir miktar girin.';
+                            }
+                            return null;
+                          }),
+                      const SizedBox(height: 12),
+                    ],
                     TextFormField(
                         controller: _shelfLocationController,
                         decoration: const InputDecoration(
