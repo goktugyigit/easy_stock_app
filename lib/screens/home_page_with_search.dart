@@ -80,7 +80,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   void _showStyledFlushbar(BuildContext context, String message,
       {Widget? mainButton}) {
     // AMK 1 YAPALIM BAKALIM NE OLACAK
-    final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
+    final mediaQuery = MediaQuery.of(context);
+    final double bottomSafeArea = mediaQuery.padding.bottom;
+    final double viewInsetsBottom = mediaQuery.viewInsets.bottom;
 
     Flushbar(
       messageText: Row(
@@ -104,7 +106,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
       backgroundColor: Colors.white,
       borderRadius: BorderRadius.circular(30.0),
       margin: EdgeInsets.only(
-        bottom: 1.0,
+        bottom: bottomSafeArea + viewInsetsBottom + 1.0,
         left: 20.0,
         right: 20.0,
       ),
@@ -479,7 +481,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                 : SliverPadding(
                                     padding: EdgeInsets.only(
                                       top: listItemVerticalPadding,
-                                      bottom: _totalBottomClearance + 12.0,
+                                      bottom: _totalBottomClearance +
+                                          MediaQuery.of(context).viewInsets.bottom +
+                                          12.0,
                                     ),
                                     sliver: SliverList(
                                       delegate: SliverChildBuilderDelegate(
@@ -833,10 +837,11 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                         ),
                       ),
                       Positioned(
-                        bottom: 0,
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
                         left: 0,
                         right: 0,
-                        height: _totalBottomClearance,
+                        height:
+                            _totalBottomClearance + MediaQuery.of(context).viewInsets.bottom,
                         child: IgnorePointer(
                           ignoring: true,
                           child: Container(
