@@ -119,31 +119,32 @@ class _SettingsPageState extends State<SettingsPage> {
         centerTitle: true,
         onSavePressed: _isLoading ? null : _saveSettings,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : CustomScrollView(
-              // iOS refresh için gerekli physics
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                // iOS tarzı refresh control
-                CupertinoSliverRefreshControl(
-                  onRefresh: _loadSettings,
-                  refreshTriggerPullDistance: 80.0,
-                  refreshIndicatorExtent: 60.0,
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : CustomScrollView(
+                // iOS refresh için gerekli physics
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
-                // Ana içerik
-                SliverPadding(
-                  padding: EdgeInsets.only(
-                    left: 16.0,
-                    right: 16.0,
-                    top: 16.0,
-                    // Dinamik bottom padding - overflow çözümü (artırıldı)
-                    bottom: MediaQuery.of(context).padding.bottom + 120.0,
+                slivers: [
+                  // iOS tarzı refresh control
+                  CupertinoSliverRefreshControl(
+                    onRefresh: _loadSettings,
+                    refreshTriggerPullDistance: 80.0,
+                    refreshIndicatorExtent: 60.0,
                   ),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
+                  // Ana içerik
+                  SliverPadding(
+                    padding: EdgeInsets.only(
+                      left: 16.0,
+                      right: 16.0,
+                      top: 16.0,
+                      // Dinamik bottom padding - overflow çözümü (artırıldı)
+                      bottom: MediaQuery.of(context).padding.bottom + 120.0,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
                       Form(
                         key: _formKey,
                         child: Column(
@@ -222,8 +223,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     ]),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
-    );
+      );
   }
 }

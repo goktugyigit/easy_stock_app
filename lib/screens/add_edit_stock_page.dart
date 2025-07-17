@@ -13,6 +13,7 @@ import '../models/stock_item.dart';
 import '../models/warehouse_item.dart';
 import '../models/shop_item.dart';
 import '../widgets/corporate_header.dart';
+import './warehouses_shops_page.dart';
 // Eğer barkod/QR tarama butonları aktif edilecekse bu import geri eklenmeli
 // import '../widgets/barcode_scanner_page.dart';
 
@@ -20,8 +21,9 @@ enum AssignmentType { none, warehouse, shop }
 
 class AddEditStockPage extends StatefulWidget {
   final String? existingItemId;
+  final bool showQuantityField;
 
-  const AddEditStockPage({super.key, this.existingItemId});
+  const AddEditStockPage({super.key, this.existingItemId, this.showQuantityField = true});
 
   @override
   State<AddEditStockPage> createState() => _AddEditStockPageState();
@@ -190,6 +192,17 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
     if (!isValid) {
       return;
     }
+    if (_warehouses.isEmpty && _shops.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Kaydetmeden önce en az bir depo veya dükkân oluşturun.'),
+          ),
+        );
+      }
+      return;
+    }
     // _formKey.currentState!.save(); // onSaved kullanmıyorsak gereksiz olabilir
     setState(() {
       _isLoading = true;
@@ -329,7 +342,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
     if (!_areWarehousesAndShopsLoaded) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20.0),
-        child: Center(child: Text("Depo/Dükkan listesi yükleniyor...")),
+        child: Center(child: Text('Depo/Dükkan listesi yükleniyor...')),
       );
     }
 
@@ -342,7 +355,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                 size: 40, color: Theme.of(context).colorScheme.secondary),
             const SizedBox(height: 10),
             const Text(
-              'Stok ekleyebilmek için lütfen önce bir depo veya dükkan oluşturun.',
+              'Stok eklemek için lütfen önce bir depo veya dükkân oluşturun.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -351,11 +364,10 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
               icon: const Icon(Icons.add_business_outlined),
               label: const Text('Depo/Dükkan Yönetimine Git'),
               onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Lütfen alt navigasyondan "Depo/Mağaza" sekmesine gidin.')),
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => const WarehousesShopsPage(),
+                  ),
                 );
               },
             )
@@ -364,115 +376,53 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
       );
     }
 
-    List<DropdownMenuItem<String>> dropdownItems = [];
-    String? currentSelection;
-    String hintText = "Bir yere ata (Opsiyonel)"; // Daha genel bir hint
+    final List<DropdownMenuItem<String>> dropdownItems = [
+      const DropdownMenuItem(value: '', child: Text('Seçim yapma')),
+      ..._warehouses
+          .map((w) => DropdownMenuItem(value: 'w:${w.id}', child: Text('Depo: ${w.name}'))),
+      ..._shops
+          .map((s) => DropdownMenuItem(value: 's:${s.id}', child: Text('Dükkan: ${s.name}'))),
+    ];
 
-    // Önce hangi tipin seçili olduğuna bak
-    if (_assignmentType == AssignmentType.warehouse) {
-      hintText = "Depo Seçin";
-      currentSelection = _selectedWarehouseId;
-      dropdownItems = _warehouses
-          .map((warehouse) => DropdownMenuItem(
-                value: warehouse.id,
-                child: Text(warehouse.name),
-              ))
-          .toList();
-      if (dropdownItems.isEmpty) {
-        dropdownItems.add(const DropdownMenuItem(
-            value: null, enabled: false, child: Text("Uygun depo bulunamadı")));
-      }
-    } else if (_assignmentType == AssignmentType.shop) {
-      hintText = "Dükkan Seçin";
-      currentSelection = _selectedShopId;
-      dropdownItems = _shops
-          .map((shop) => DropdownMenuItem(
-                value: shop.id,
-                child: Text(shop.name),
-              ))
-          .toList();
-      if (dropdownItems.isEmpty) {
-        dropdownItems.add(const DropdownMenuItem(
-            value: null,
-            enabled: false,
-            child: Text("Uygun dükkan bulunamadı")));
-      }
+    String? currentValue;
+    if (_assignmentType == AssignmentType.warehouse && _selectedWarehouseId != null) {
+      currentValue = 'w:${_selectedWarehouseId!}';
+    } else if (_assignmentType == AssignmentType.shop && _selectedShopId != null) {
+      currentValue = 's:${_selectedShopId!}';
+    } else {
+      currentValue = '';
     }
-    // Eğer _assignmentType == AssignmentType.none ise, dropdownItems boş kalır ve hintText genel olur.
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        Text("Stoğu Ata:", style: Theme.of(context).textTheme.titleMedium),
-        Row(
-          children: [
-            Expanded(
-              child: RadioListTile<AssignmentType>(
-                title: const Text('Depoya'),
-                value: AssignmentType.warehouse,
-                groupValue: _assignmentType,
-                onChanged: (_warehouses.isEmpty)
-                    ? null
-                    : (AssignmentType? value) {
-                        // Depo yoksa disable
-                        setState(() {
-                          if (value == AssignmentType.warehouse) {
-                            _assignmentType = AssignmentType.warehouse;
-                            _selectedShopId = null; // Diğer seçimi temizle
-                            _selectedWarehouseId =
-                                null; // Dropdown için ilk seçimi temizle
-                          }
-                        });
-                      },
-              ),
-            ),
-            Expanded(
-              child: RadioListTile<AssignmentType>(
-                title: const Text('Dükkana'),
-                value: AssignmentType.shop,
-                groupValue: _assignmentType,
-                onChanged: (_shops.isEmpty)
-                    ? null
-                    : (AssignmentType? value) {
-                        // Dükkan yoksa disable
-                        setState(() {
-                          if (value == AssignmentType.shop) {
-                            _assignmentType = AssignmentType.shop;
-                            _selectedWarehouseId = null; // Diğer seçimi temizle
-                            _selectedShopId =
-                                null; // Dropdown için ilk seçimi temizle
-                          }
-                        });
-                      },
-              ),
-            ),
-          ],
-        ),
-        if (_assignmentType != AssignmentType.none)
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: hintText,
-              border: const OutlineInputBorder(),
-            ),
-            value: currentSelection,
-            hint: Text(hintText),
-            isExpanded: true,
-            items: dropdownItems,
-            onChanged: (dropdownItems.length == 1 &&
-                    dropdownItems.first.enabled ==
-                        false) // Eğer sadece "bulunamadı" item'ı varsa disable
-                ? null
-                : (String? newValue) {
-                    setState(() {
-                      if (_assignmentType == AssignmentType.warehouse) {
-                        _selectedWarehouseId = newValue;
-                      } else if (_assignmentType == AssignmentType.shop) {
-                        _selectedShopId = newValue;
-                      }
-                    });
-                  },
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          decoration: const InputDecoration(
+            labelText: 'Depo/Dükkan (Opsiyonel)',
+            border: OutlineInputBorder(),
           ),
+          value: currentValue,
+          isExpanded: true,
+          items: dropdownItems,
+          onChanged: (String? value) {
+            setState(() {
+              if (value == null || value.isEmpty) {
+                _assignmentType = AssignmentType.none;
+                _selectedWarehouseId = null;
+                _selectedShopId = null;
+              } else if (value.startsWith('w:')) {
+                _assignmentType = AssignmentType.warehouse;
+                _selectedWarehouseId = value.substring(2);
+                _selectedShopId = null;
+              } else if (value.startsWith('s:')) {
+                _assignmentType = AssignmentType.shop;
+                _selectedWarehouseId = null;
+                _selectedShopId = value.substring(2);
+              }
+            });
+          },
+        ),
       ],
     );
   }
@@ -481,20 +431,27 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CorporateHeader(
-        title:
-            widget.existingItemId == null ? 'Yeni Stok Ekle' : 'Stok Düzenle',
+        title: widget.existingItemId == null
+            ? (widget.showQuantityField ? 'Yeni Stok Ekle' : 'Stok Kartı Oluştur')
+            : 'Stok Düzenle',
         showBackButton: true,
         showSaveButton: true,
         centerTitle: true,
         onSavePressed: _isLoading ? null : _doSaveForm,
       ),
-      body: (_isLoading && !_areWarehousesAndShopsLoaded)
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
+      body: SafeArea(
+        child: (_isLoading && !_areWarehousesAndShopsLoaded)
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16.0,
+                  16.0,
+                  16.0,
+                  16.0 + MediaQuery.of(context).padding.bottom,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
                   children: <Widget>[
                     Center(
                       child: GestureDetector(
@@ -527,27 +484,30 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                             ? 'Stok adı zorunludur.'
                             : null),
                     const SizedBox(height: 12),
-                    TextFormField(
-                        controller: _quantityController,
-                        decoration: const InputDecoration(
-                            labelText: 'Miktar (*)',
-                            border: OutlineInputBorder()),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        textInputAction: TextInputAction.next,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Miktar zorunludur.';
-                          }
-                          final n = int.tryParse(v);
-                          if (n == null || n < 0) {
-                            return 'Geçerli pozitif bir miktar girin.';
-                          }
-                          return null;
-                        }),
-                    const SizedBox(height: 12),
+                    if (widget.showQuantityField) ...[
+                      TextFormField(
+                          controller: _quantityController,
+                          decoration: const InputDecoration(
+                              labelText: 'Miktar (*)',
+                              border: OutlineInputBorder()),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          textInputAction: TextInputAction.next,
+                          validator: (v) {
+                            if (!widget.showQuantityField) return null;
+                            if (v == null || v.isEmpty) {
+                              return 'Miktar zorunludur.';
+                            }
+                            final n = int.tryParse(v);
+                            if (n == null || n < 0) {
+                              return 'Geçerli pozitif bir miktar girin.';
+                            }
+                            return null;
+                          }),
+                      const SizedBox(height: 12),
+                    ],
                     TextFormField(
                         controller: _shelfLocationController,
                         decoration: const InputDecoration(
@@ -662,6 +622,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                 ),
               ),
             ),
-    );
+          ),
+      );
   }
 }
