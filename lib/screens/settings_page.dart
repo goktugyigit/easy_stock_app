@@ -141,7 +141,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       right: 16.0,
                       top: 16.0,
                       // Dinamik bottom padding - overflow çözümü (artırıldı)
-                      bottom: MediaQuery.of(context).padding.bottom + 120.0,
+                      bottom: MediaQuery.of(context).padding.bottom +
+                          MediaQuery.of(context).viewInsets.bottom +
+                          120.0,
                     ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
