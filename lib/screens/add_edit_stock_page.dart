@@ -447,7 +447,9 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                   16.0,
                   16.0,
                   16.0,
-                  16.0 + MediaQuery.of(context).padding.bottom,
+                  16.0 +
+                      MediaQuery.of(context).padding.bottom +
+                      MediaQuery.of(context).viewInsets.bottom,
                 ),
                 child: Form(
                   key: _formKey,

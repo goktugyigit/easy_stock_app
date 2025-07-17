@@ -149,7 +149,7 @@ class _StockListPageState extends State<StockListPage> {
       backgroundColor: Colors.white,
       borderRadius: BorderRadius.circular(30.0),
       margin: EdgeInsets.only(
-        bottom: 1.0,
+        bottom: bottomSafeArea + MediaQuery.of(context).viewInsets.bottom + 1.0,
         left: 20,
         right: 20,
       ),
@@ -261,6 +261,7 @@ class _StockListPageState extends State<StockListPage> {
                         top: listItemVerticalPadding,
                         // Dinamik bottom padding hesaplama - overflow çözümü (artırıldı)
                         bottom: MediaQuery.of(context).padding.bottom +
+                            MediaQuery.of(context).viewInsets.bottom +
                             120.0, // 120px navbar için güvenli alan
                       ),
                       sliver: SliverList(
