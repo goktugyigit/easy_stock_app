@@ -393,14 +393,15 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
           isSearchFocused: _isSearchFocused,
           searchHint: 'Stok ara, barkod tara...',
         ),
-        body: _isLoadingSettings
-            ? const Center(child: CircularProgressIndicator())
-            : Consumer<StockProvider>(
-                builder: (consumerCtx, stockProvider, _) {
-                  _updateFilteredItems(stockProvider.items);
-                  final itemsToDisplay = _filteredItems;
-                  return Stack(
-                    children: [
+        body: SafeArea(
+          child: _isLoadingSettings
+              ? const Center(child: CircularProgressIndicator())
+              : Consumer<StockProvider>(
+                  builder: (consumerCtx, stockProvider, _) {
+                    _updateFilteredItems(stockProvider.items);
+                    final itemsToDisplay = _filteredItems;
+                    return Stack(
+                      children: [
                       // iOS Style Pull-to-Refresh with CupertinoSliverRefreshControl
                       NotificationListener<OverscrollIndicatorNotification>(
                         onNotification:
@@ -854,9 +855,10 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
+        ),
       ),
     );
   }

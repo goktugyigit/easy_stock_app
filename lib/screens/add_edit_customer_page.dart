@@ -448,7 +448,12 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(
+              16.0,
+              16.0,
+              16.0,
+              16.0 + MediaQuery.of(context).padding.bottom,
+            ),
             child: Column(
               children: [
                 // Cari Türü
@@ -585,8 +590,6 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
                   maxLines: 3,
                   hintText: 'Cari ile ilgili notlar',
                 ),
-
-                const SizedBox(height: 40),
               ],
             ),
           ),

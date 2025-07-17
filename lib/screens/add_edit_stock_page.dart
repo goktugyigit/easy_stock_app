@@ -441,13 +441,19 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
         centerTitle: true,
         onSavePressed: _isLoading ? null : _doSaveForm,
       ),
-      body: (_isLoading && !_areWarehousesAndShopsLoaded)
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
+      body: SafeArea(
+        child: (_isLoading && !_areWarehousesAndShopsLoaded)
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16.0,
+                  16.0,
+                  16.0,
+                  16.0 + MediaQuery.of(context).padding.bottom,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
                   children: <Widget>[
                     Center(
                       child: GestureDetector(

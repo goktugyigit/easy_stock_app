@@ -97,6 +97,20 @@ class CustomerCard extends StatelessWidget {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
+                                if (customer.isCustomer &&
+                                    customer.customerNumber != null)
+                                  Text(
+                                    'Müşteri No: ${customer.customerNumber}',
+                                    style: const TextStyle(
+                                        color: Colors.white70, fontSize: 12),
+                                  ),
+                                if (customer.isSupplier &&
+                                    customer.supplierNumber != null)
+                                  Text(
+                                    'Tedarikçi No: ${customer.supplierNumber}',
+                                    style: const TextStyle(
+                                        color: Colors.white70, fontSize: 12),
+                                  ),
                               ],
                             ),
                           ),
