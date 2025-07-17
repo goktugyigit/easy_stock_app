@@ -389,7 +389,9 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
               16.0,
               16.0,
               16.0,
-              16.0 + MediaQuery.of(context).padding.bottom,
+              16.0 +
+                  MediaQuery.of(context).padding.bottom +
+                  MediaQuery.of(context).viewInsets.bottom,
             ),
             child: Column(
               children: [
