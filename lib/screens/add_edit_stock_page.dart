@@ -379,11 +379,9 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
     final List<DropdownMenuItem<String>> dropdownItems = [
       const DropdownMenuItem(value: '', child: Text('Seçim yapma')),
       ..._warehouses
-          .map((w) => DropdownMenuItem(value: 'w:${w.id}', child: Text('Depo: ${w.name}')))
-          .toList(),
+          .map((w) => DropdownMenuItem(value: 'w:${w.id}', child: Text('Depo: ${w.name}'))),
       ..._shops
-          .map((s) => DropdownMenuItem(value: 's:${s.id}', child: Text('Dükkan: ${s.name}')))
-          .toList(),
+          .map((s) => DropdownMenuItem(value: 's:${s.id}', child: Text('Dükkan: ${s.name}'))),
     ];
 
     String? currentValue;
@@ -624,6 +622,7 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                 ),
               ),
             ),
-    );
+          ),
+      );
   }
 }
