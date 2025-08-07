@@ -1,7 +1,6 @@
 // lib/widgets/ultra_modern_header.dart - ULTRA PROFESYONEL HEADER
 
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:ui';
 
 class UltraModernHeader extends StatefulWidget implements PreferredSizeWidget {
@@ -33,13 +32,25 @@ class UltraModernHeader extends StatefulWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(180);
 }
 
-class _UltraModernHeaderState extends State<UltraModernHeader> {
+class _UltraModernHeaderState extends State<UltraModernHeader>
+    with TickerProviderStateMixin {
   bool _isSearchActive = false;
+  late final AnimationController _shimmer; // controller
+  late final Animation<double> _x; // -1.5 … +1.5
 
   @override
   void initState() {
     super.initState();
     widget.searchFocusNode?.addListener(_onFocusChanged);
+
+    _shimmer = AnimationController(
+      duration: const Duration(
+          milliseconds:
+              4000), // 4 sn sola→sağa, 4 sn sağa→sola = 8 sn tam devir
+      vsync: this,
+    )..repeat(reverse: true); // ping-pong
+
+    _x = Tween<double>(begin: -1.5, end: 1.5).animate(_shimmer);
   }
 
   void _onFocusChanged() {
@@ -70,6 +81,7 @@ class _UltraModernHeaderState extends State<UltraModernHeader> {
 
   @override
   void dispose() {
+    _shimmer.dispose();
     widget.searchFocusNode?.removeListener(_onFocusChanged);
     super.dispose();
   }
@@ -147,17 +159,174 @@ class _UltraModernHeaderState extends State<UltraModernHeader> {
   }
 
   Widget _buildTitle() {
-    return Center(
-      child: Text(
-        widget.title,
-        key: const ValueKey('title'),
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-          letterSpacing: 0.4,
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive değerler - ekran boyutuna göre
+        final screenWidth = constraints.maxWidth;
+        final isSmallScreen = screenWidth < 400;
+
+        // Responsive boyutlar
+        final horizontalPadding =
+            isSmallScreen ? 36.0 : 52.0; // Çok daha uzun padding
+        final verticalPadding = isSmallScreen ? 6.0 : 8.0;
+        final borderRadius = isSmallScreen ? 12.0 : 16.0;
+        final fontSize = isSmallScreen ? 18.0 : 20.0;
+        final borderWidth = isSmallScreen ? 1.0 : 1.5;
+
+        return AnimatedBuilder(
+          animation: _x,
+          builder: (context, child) {
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                // Arka plan pulse efekti - cool renkli
+                Container(
+                  width: screenWidth + 8, // Biraz daha geniş pulse
+                  height: isSmallScreen ? 38 : 42, // Yüksekliği biraz artır
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0EA5E9)
+                        .withValues(alpha: 0.12), // Cool sky blue pulse
+                    borderRadius: BorderRadius.circular(borderRadius + 2),
+                  ),
+                ),
+                // Shimmerlı arka plan (text'in arkasında kalacak)
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    child: Stack(
+                      children: [
+                        // Arka plan gradient (sabit)
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF0EA5E9)
+                                    .withValues(alpha: 0.25), // Sky blue
+                                const Color(0xFF0284C7)
+                                    .withValues(alpha: 0.3), // Blue
+                                const Color(0xFF0369A1)
+                                    .withValues(alpha: 0.25), // Dark blue
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        ),
+                        // Yavaş ve yumuşak shimmer - Ana katman
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.white.withValues(alpha: 0.03),
+                                Colors.white.withValues(alpha: 0.08),
+                                Colors.white.withValues(alpha: 0.15),
+                                Colors.white.withValues(alpha: 0.25),
+                                Colors.white.withValues(alpha: 0.35),
+                                Colors.white.withValues(alpha: 0.25),
+                                Colors.white.withValues(alpha: 0.15),
+                                Colors.white.withValues(alpha: 0.08),
+                                Colors.white.withValues(alpha: 0.03),
+                                Colors.transparent,
+                              ],
+                              stops: const [
+                                0.0,
+                                0.1,
+                                0.2,
+                                0.3,
+                                0.4,
+                                0.5,
+                                0.6,
+                                0.7,
+                                0.8,
+                                0.9,
+                                1.0
+                              ],
+                              // Animasyonun x-eksenindeki pozisyonu, -1.5 ile 1.5 arasında.
+                              // Bu, gradient'in başlangıç ve bitiş noktalarını belirler.
+                              begin: Alignment(
+                                  _x.value - 1.5, -0.2), // -3.0'dan başlar
+                              end: Alignment(
+                                  _x.value + 1.5, 0.2), // 3.0'da biter
+                            ),
+                          ),
+                        ),
+                        // İkinci yumuşak katman - İnce accent
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.white.withValues(alpha: 0.12),
+                                Colors.white.withValues(alpha: 0.18),
+                                Colors.white.withValues(alpha: 0.12),
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.transparent,
+                              ],
+                              stops: const [
+                                0.0,
+                                0.25,
+                                0.4,
+                                0.5,
+                                0.6,
+                                0.75,
+                                1.0
+                              ],
+                              begin: Alignment(-_x.value - 1.0,
+                                  -0.1), // Ters yönde ve simetrik
+                              end: Alignment(-_x.value + 1.0, 0.1),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Yazı (shimmer'ın üstünde sabit duran katman)
+                Container(
+                  key: const ValueKey('title'),
+                  width: screenWidth, // Tam genişlik, search bar ile eşit
+                  alignment: Alignment.center, // Text'i ortala
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: verticalPadding,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: Border.all(
+                      // Daha koyu çizgi - cool tone
+                      color: const Color(0xFF075985)
+                          .withValues(alpha: 0.6), // Dark blue border
+                      width: borderWidth,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                        blurRadius: isSmallScreen ? 8 : 12,
+                        offset: Offset(0, isSmallScreen ? 3 : 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    widget.title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                      height: 1.2, // Line height kontrolü
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

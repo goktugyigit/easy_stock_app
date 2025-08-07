@@ -319,7 +319,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
                                 height: isSelected ? 16 : 15,
                                 color: isSelected
                                     ? AppTheme.primaryColor
-                                    : Colors.white.withValues(alpha: 0.7),
+                                    : Colors.white, // Tam beyaz
                                 filterQuality: FilterQuality.high,
                               )
                             : Icon(
@@ -327,7 +327,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
                                 size: isSelected ? 26 : 24,
                                 color: isSelected
                                     ? AppTheme.primaryColor
-                                    : Colors.white.withValues(alpha: 0.7),
+                                    : Colors.white, // Tam beyaz
                               ),
                       ),
                     ),
