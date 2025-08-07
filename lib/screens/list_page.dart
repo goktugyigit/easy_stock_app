@@ -1,6 +1,7 @@
 // lib/screens/list_page.dart
 import 'package:flutter/material.dart';
 import '../widgets/action_card.dart';
+import '../widgets/shimmer_title_header.dart';
 import './stok_yonet_page.dart'; // StokYonetPage'e buradan gidilecek
 import './manage_customers_page.dart'; // Yeni eklenen sayfa
 
@@ -12,15 +13,8 @@ class ListPage extends StatelessWidget {
     // Bu Scaffold, ListPage'in iç Navigator'ı tarafından yönetilecek
     // ana ekranı temsil eder.
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('İşlemler'),
-        centerTitle: true,
-        // ÖNEMLİ: Eğer bu AppBar'ın geri butonu göstermesini istemiyorsan
-        // (çünkü bu zaten bir sekmenin ana sayfası),
-        // automaticallyImplyLeading: false ekleyebilirsin.
-        // Ancak iç navigasyonda bir sonraki sayfaya gidildiğinde
-        // oradaki AppBar'da geri butonu görünecektir.
-        // automaticallyImplyLeading: false,
+      appBar: const ShimmerTitleHeader(
+        title: 'İşlemler',
       ),
       body: SafeArea(
         child: Column(

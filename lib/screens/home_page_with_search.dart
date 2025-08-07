@@ -11,6 +11,7 @@ import '../widgets/stock_item_card.dart';
 import '../utils/app_theme.dart';
 import '../widgets/dialogs/show_stock_options_dialog.dart';
 import '../widgets/ultra_modern_header.dart';
+import '../widgets/modern_empty_state.dart';
 import '../widgets/main_screen_with_bottom_nav.dart'; // Navbar boyutları için import
 
 // Projenizin linter kurallarına uyum sağlamak için bu Color extension'ının
@@ -418,160 +419,31 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                       final itemsToDisplay = _filteredItems;
                       // Empty state tamamen ayrı widget - keyboard-aware
                       if (itemsToDisplay.isEmpty) {
-                        return Container(
-                          color: Colors.black,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              // Keyboard yüksekliğini hesapla
-                              final keyboardHeight =
-                                  MediaQuery.of(context).viewInsets.bottom;
-                              final availableHeight =
-                                  constraints.maxHeight - keyboardHeight;
-
-                              // Responsive margin ve padding
-                              final margin =
-                                  availableHeight > 400 ? 30.0 : 20.0;
-                              final padding =
-                                  availableHeight > 400 ? 30.0 : 20.0;
-
-                              return Center(
-                                child: SingleChildScrollView(
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    elevation: 12,
-                                    child: Container(
-                                      margin: EdgeInsets.all(margin),
-                                      padding: EdgeInsets.all(padding),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.3),
-                                          width: 2,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFF00C6FF)
-                                                .withValues(alpha: 0.4),
-                                            blurRadius: 30,
-                                            offset: const Offset(0, 15),
-                                            spreadRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            _isSearching
-                                                ? Icons.search_off_rounded
-                                                : Icons
-                                                    .add_shopping_cart_rounded,
-                                            size: availableHeight > 400
-                                                ? 80
-                                                : 60, // Responsive icon size
-                                            color: Colors.white,
-                                          ),
-                                          SizedBox(
-                                              height: availableHeight > 400
-                                                  ? 20
-                                                  : 15), // Responsive spacing
-                                          Text(
-                                            _isSearching
-                                                ? 'Aramanızla eşleşen stok bulunamadı.'
-                                                : 'Henüz hiç stok eklenmemiş.',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: availableHeight > 400
-                                                  ? 18
-                                                  : 16, // Responsive font size
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          if (!_isSearching) ...[
-                                            SizedBox(
-                                                height: availableHeight > 400
-                                                    ? 25
-                                                    : 20), // Responsive spacing
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                gradient: const LinearGradient(
-                                                  colors: [
-                                                    Color(0xFF00C6FF),
-                                                    Color(0xFF0072FF)
-                                                  ],
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color:
-                                                        const Color(0xFF00C6FF)
-                                                            .withValues(
-                                                                alpha: 0.4),
-                                                    blurRadius: 15,
-                                                    offset: const Offset(0, 8),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: ElevatedButton.icon(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  shadowColor:
-                                                      Colors.transparent,
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 32,
-                                                    vertical: 16,
-                                                  ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                  ),
-                                                ),
-                                                icon: const Icon(
-                                                  Icons.add_circle_outline,
-                                                  color: Colors.white,
-                                                  size: 24,
-                                                ),
-                                                label: const Text(
-                                                  'İlk Stoğunu Ekle',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                onPressed: () => Navigator.of(
-                                                        context,
-                                                        rootNavigator: true)
-                                                    .push(
-                                                  MaterialPageRoute(
-                                                      builder: (navCtx) =>
-                                                          const AddEditStockPage()),
-                                                )
-                                                    .then((_) {
-                                                  if (mounted) {
-                                                    _loadPageData();
-                                                  }
-                                                }),
-                                              ),
-                                            ),
-                                          ]
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                        return ModernEmptyState(
+                          title: _isSearching
+                              ? 'Sonuç Bulunamadı'
+                              : 'Henüz Hiç Stok Eklenmedi',
+                          subtitle: _isSearching
+                              ? 'Aramanızla eşleşen stok bulunamadı. Farklı kelimeler deneyin.'
+                              : 'İlk stoğunuzu ekleyerek envanter yönetiminize başlayın.',
+                          icon: _isSearching
+                              ? Icons.search_off_rounded
+                              : Icons.inventory_2_outlined,
+                          buttonText: 'İlk Stoğunu Ekle',
+                          isSearching: _isSearching,
+                          onButtonPressed: _isSearching
+                              ? null
+                              : () => Navigator.of(context, rootNavigator: true)
+                                      .push(
+                                    MaterialPageRoute(
+                                        builder: (navCtx) =>
+                                            const AddEditStockPage()),
+                                  )
+                                      .then((_) {
+                                    if (mounted) {
+                                      _loadPageData();
+                                    }
+                                  }),
                         );
                       }
 

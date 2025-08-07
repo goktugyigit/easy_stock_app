@@ -1,7 +1,8 @@
 // lib/screens/home_settings_page.dart
 import 'package:flutter/material.dart';
 import '../widgets/action_card.dart'; // ActionCard'ı kullanacağız
-import './settings_page.dart';     // Stok Eşik Ayarları bu sayfaya gidecek
+import '../widgets/shimmer_title_header.dart';
+import './settings_page.dart'; // Stok Eşik Ayarları bu sayfaya gidecek
 
 class HomeSettingsPage extends StatelessWidget {
   const HomeSettingsPage({super.key});
@@ -9,9 +10,8 @@ class HomeSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ayarlar Ana Sayfası'),
-        centerTitle: true,
+      appBar: const ShimmerTitleHeader(
+        title: 'Ayarlar Ana Sayfası',
       ),
       body: SafeArea(
         child: ListView(
@@ -22,7 +22,8 @@ class HomeSettingsPage extends StatelessWidget {
               // örneğin: 'assets/images/threshold_settings_icon.png'
               // Resimdeki ikonu kullanmak için doğru yolu girin.
               // Eğer resimdeki ikonun adı "stock_threshold_icon.png" ise:
-              imagePath: 'assets/images/stock_threshold_icon.png', // GÖRSELDEKİ İKONUN YOLU
+              imagePath:
+                  'assets/images/stock_threshold_icon.png', // GÖRSELDEKİ İKONUN YOLU
               title: 'Stok Eşik Ayarları',
               iconSize: 48.0, // DEĞİŞİKLİK: İkon boyutunu büyüttük (örneğin 64)
               onTap: () {

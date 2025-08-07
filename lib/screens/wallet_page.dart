@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/sale_provider.dart';
 import '../models/sale_item.dart';
 import '../widgets/sale_item_card.dart';
+import '../widgets/shimmer_title_header.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
@@ -19,23 +20,24 @@ class _WalletPageState extends State<WalletPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<SaleProvider>(context, listen: false).fetchAndSetItems(forceFetch: true);
+        Provider.of<SaleProvider>(context, listen: false)
+            .fetchAndSetItems(forceFetch: true);
       }
     });
   }
 
   Future<void> _refreshSales() async {
-     if (mounted) {
-        await Provider.of<SaleProvider>(context, listen: false).fetchAndSetItems(forceFetch: true);
-      }
+    if (mounted) {
+      await Provider.of<SaleProvider>(context, listen: false)
+          .fetchAndSetItems(forceFetch: true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Yapılan Satışlar'),
-        centerTitle: true,
+      appBar: const ShimmerTitleHeader(
+        title: 'Yapılan Satışlar',
       ),
       body: Consumer<SaleProvider>(
         builder: (context, saleProvider, child) {

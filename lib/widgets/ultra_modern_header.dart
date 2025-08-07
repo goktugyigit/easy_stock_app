@@ -115,15 +115,15 @@ class _UltraModernHeaderState extends State<UltraModernHeader>
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Title her zaman göster
                     _buildTopRow(),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _buildSearchRow(),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _buildActionButtons(),
                   ],
                 ),
@@ -447,7 +447,7 @@ class _UltraModernHeaderState extends State<UltraModernHeader>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: gradient,
