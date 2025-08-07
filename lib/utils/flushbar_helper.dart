@@ -11,6 +11,34 @@ class FlushbarHelper {
     return bottomSafeArea + 100.0; // Standart gap
   }
 
+  /// Başarı mesajı gösterir
+  static void showSuccessFlushbar(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    showOptimizedFlushbar(
+      context,
+      message,
+      duration: duration,
+      type: FlushbarType.success,
+    );
+  }
+
+  /// Hata mesajı gösterir
+  static void showErrorFlushbar(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 4),
+  }) {
+    showOptimizedFlushbar(
+      context,
+      message,
+      duration: duration,
+      type: FlushbarType.error,
+    );
+  }
+
   /// Standard Flushbar - basit ve güvenilir
   static void showOptimizedFlushbar(
     BuildContext context,
@@ -19,9 +47,28 @@ class FlushbarHelper {
     Duration duration = const Duration(seconds: 4),
     FlushbarType type = FlushbarType.info,
   }) {
-    // Basit icon seçimi
-    IconData icon = Icons.info_outline;
-    Color iconColor = AppTheme.primaryColor;
+    // Icon ve renk seçimi
+    IconData icon;
+    Color iconColor;
+
+    switch (type) {
+      case FlushbarType.success:
+        icon = Icons.check_circle_outline;
+        iconColor = Colors.green;
+        break;
+      case FlushbarType.error:
+        icon = Icons.error_outline;
+        iconColor = Colors.red;
+        break;
+      case FlushbarType.warning:
+        icon = Icons.warning_outlined;
+        iconColor = Colors.orange;
+        break;
+      case FlushbarType.info:
+        icon = Icons.info_outline;
+        iconColor = AppTheme.primaryColor;
+        break;
+    }
 
     Flushbar(
       messageText: Row(

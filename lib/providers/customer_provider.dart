@@ -6,6 +6,17 @@ import 'dart:convert';
 import '../models/customer.dart';
 
 class CustomerProvider with ChangeNotifier {
+  // Güvenli notifyListeners çağrısı için helper metod
+  void _safeNotifyListeners() {
+    if (WidgetsBinding.instance.lifecycleState != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } else {
+      Future.microtask(() => notifyListeners());
+    }
+  }
+
   List<Customer> _customers = [];
   bool _isLoading = false;
 
@@ -49,7 +60,7 @@ class CustomerProvider with ChangeNotifier {
     if (_isLoading && !forceFetch) return;
 
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -71,9 +82,7 @@ class CustomerProvider with ChangeNotifier {
     }
 
     _isLoading = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    _safeNotifyListeners();
   }
 
   // Carileri kaydet
@@ -166,7 +175,8 @@ class CustomerProvider with ChangeNotifier {
 
       _customers.add(newCustomer);
       await _saveCustomers();
-      notifyListeners();
+
+      _safeNotifyListeners();
     } catch (error) {
       debugPrint('Cari ekleme hatası: $error');
       throw Exception('Cari ekleme işlemi başarısız oldu');
@@ -207,7 +217,7 @@ class CustomerProvider with ChangeNotifier {
         );
 
         await _saveCustomers();
-        notifyListeners();
+        _safeNotifyListeners();
       }
     } catch (error) {
       debugPrint('Cari güncelleme hatası: $error');
@@ -220,7 +230,7 @@ class CustomerProvider with ChangeNotifier {
     try {
       _customers.removeWhere((c) => c.id == id);
       await _saveCustomers();
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (error) {
       debugPrint('Cari silme hatası: $error');
       throw Exception('Cari silme işlemi başarısız oldu');
@@ -276,7 +286,7 @@ class CustomerProvider with ChangeNotifier {
         );
 
         await _saveCustomers();
-        notifyListeners();
+        _safeNotifyListeners();
       }
     } catch (error) {
       debugPrint('Bakiye güncelleme hatası: $error');
@@ -289,7 +299,7 @@ class CustomerProvider with ChangeNotifier {
     try {
       _customers.clear();
       await _saveCustomers();
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (error) {
       debugPrint('Cari temizleme hatası: $error');
       throw Exception('Cari temizleme işlemi başarısız oldu');
@@ -347,7 +357,7 @@ class CustomerProvider with ChangeNotifier {
 
       _customers.addAll(sampleCustomers);
       await _saveCustomers();
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (error) {
       debugPrint('Örnek veri ekleme hatası: $error');
       throw Exception('Örnek veri ekleme işlemi başarısız oldu');

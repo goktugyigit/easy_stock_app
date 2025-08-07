@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/action_card.dart';
 import './add_edit_stock_page.dart';
 import './stock_list_page.dart';
+import './manage_units_page.dart';
 
 class StokYonetPage extends StatelessWidget {
   const StokYonetPage({super.key});
@@ -17,27 +18,46 @@ class StokYonetPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16.0),
         children: <Widget>[
           ActionCard(
-            imagePath: 'assets/images/add_stock_icon.png', // KENDİ RESİM YOLUNU GİR
+            imagePath:
+                'assets/images/add_stock_icon.png', // KENDİ RESİM YOLUNU GİR
             title: 'Stok Kartı Oluştur',
             onTap: () {
               // AddEditStockPage'i kök navigator'a push et (BottomNav gizlenecek)
-              Navigator.of(context, rootNavigator: true).push(
+              Navigator.of(context, rootNavigator: true)
+                  .push(
                 MaterialPageRoute(
                     builder: (context) =>
                         const AddEditStockPage(showQuantityField: false)),
-              ).then((_) {
+              )
+                  .then((_) {
                 // Geri dönüldüğünde bir işlem yapmak istersen
               });
             },
           ),
           const SizedBox(height: 10), // Kartlar arası boşluk
           ActionCard(
-            imagePath: 'assets/images/list_stocks_icon.png', // KENDİ RESİM YOLUNU GİR
+            imagePath:
+                'assets/images/list_stocks_icon.png', // KENDİ RESİM YOLUNU GİR
             title: 'Stok Listesi',
             onTap: () {
               // StockListPage'i İÇ NAVIGATOR'a push et (BottomNav görünür kalacak)
-              Navigator.of(context).push( // DEĞİŞİKLİK: rootNavigator: true KALDIRILDI
+              Navigator.of(context).push(
+                // DEĞİŞİKLİK: rootNavigator: true KALDIRILDI
                 MaterialPageRoute(builder: (context) => const StockListPage()),
+              );
+            },
+          ),
+          const SizedBox(height: 10), // Kartlar arası boşluk
+          ActionCard(
+            icon: Icons.straighten_outlined,
+            title: 'Birimleri Yönet',
+            iconSize: 48.0,
+            iconColor: Colors.orange,
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (context) => const ManageUnitsPage(),
+                ),
               );
             },
           ),

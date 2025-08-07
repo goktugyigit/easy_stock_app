@@ -7,6 +7,8 @@ import './providers/warehouse_provider.dart';
 import './providers/shop_provider.dart';
 import './providers/sale_provider.dart';
 import './providers/customer_provider.dart';
+import './providers/unit_provider.dart';
+import './providers/supplier_provider.dart';
 import './widgets/main_screen_with_bottom_nav.dart';
 import './utils/app_theme.dart';
 import './utils/text_scale_fix.dart';
@@ -20,6 +22,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => ShopProvider()),
         ChangeNotifierProvider(create: (_) => SaleProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
+        ChangeNotifierProvider(create: (_) => UnitProvider()),
+        ChangeNotifierProvider(create: (_) => SupplierProvider()),
       ],
       child: const MyApp(),
     ),
@@ -61,6 +65,8 @@ class _MyAppState extends State<MyApp> {
         context.read<ShopProvider>().fetchAndSetItems(forceFetch: true),
         context.read<SaleProvider>().fetchAndSetItems(forceFetch: true),
         context.read<CustomerProvider>().fetchAndSetCustomers(forceFetch: true),
+        context.read<UnitProvider>().fetchAndSetItems(forceFetch: true),
+        context.read<SupplierProvider>().fetchAndSetItems(forceFetch: true),
       ]);
     } catch (error) {
       debugPrint('Veri yükleme hatası: $error');

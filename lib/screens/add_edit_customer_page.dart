@@ -8,8 +8,9 @@ import '../widgets/corporate_header.dart';
 
 class AddEditCustomerPage extends StatefulWidget {
   final Customer? customer; // null ise yeni ekleme, değilse düzenleme
+  final CustomerType? customerType; // Başlangıç customer type'ı
 
-  const AddEditCustomerPage({super.key, this.customer});
+  const AddEditCustomerPage({super.key, this.customer, this.customerType});
 
   @override
   State<AddEditCustomerPage> createState() => _AddEditCustomerPageState();
@@ -29,7 +30,7 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
   final _initialCreditController = TextEditingController();
   final _notesController = TextEditingController();
 
-  CustomerType _selectedType = CustomerType.customer;
+  late CustomerType _selectedType;
   bool _isLoading = false;
 
   bool get _isEditing => widget.customer != null;
@@ -106,6 +107,8 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
     } else {
       _initialDebtController.text = '0';
       _initialCreditController.text = '0';
+      // Yeni ekleme durumunda customerType parametresini kullan
+      _selectedType = widget.customerType ?? CustomerType.customer;
     }
   }
 
@@ -192,9 +195,19 @@ class _AddEditCustomerPageState extends State<AddEditCustomerPage> {
       }
 
       if (mounted) {
-        Navigator.of(context).pop(
+        // Success mesajını göster
+        _showStyledFlushbar(
+          context,
           _isEditing ? 'Cari başarıyla güncellendi' : 'Cari başarıyla eklendi',
+          isError: false,
         );
+
+        // Kısa bir delay sonra geri dön
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          Navigator.of(context).pop(true); // Boolean değer döndür
+        }
       }
     } catch (error) {
       if (mounted) {

@@ -17,7 +17,10 @@ class StockItem {
   int? maxStockThreshold;
   String? warehouseId;
   String? shopId;
-  
+  String? unitId; // Birim ID'si (UnitItem'dan)
+  String?
+      supplierId; // Tedarikçi ID'si (Customer'dan, CustomerType.supplier olan)
+
   // --- YENİ ALANLAR ---
   // Sabitlenip sabitlenmediğini tutar.
   bool isPinned;
@@ -41,6 +44,8 @@ class StockItem {
     this.maxStockThreshold,
     this.warehouseId,
     this.shopId,
+    this.unitId,
+    this.supplierId,
     this.isPinned = false,
     this.pinnedTimestamp, // Kurucu metoda eklendi.
   });
@@ -63,6 +68,8 @@ class StockItem {
       'maxStockThreshold': maxStockThreshold,
       'warehouseId': warehouseId,
       'shopId': shopId,
+      'unitId': unitId,
+      'supplierId': supplierId,
       'isPinned': isPinned ? 1 : 0,
       // Zaman damgasını metin olarak kaydediyoruz.
       'pinnedTimestamp': pinnedTimestamp?.toIso8601String(),
@@ -87,6 +94,8 @@ class StockItem {
       maxStockThreshold: map['maxStockThreshold'] as int?,
       warehouseId: map['warehouseId'] as String?,
       shopId: map['shopId'] as String?,
+      unitId: map['unitId'] as String?,
+      supplierId: map['supplierId'] as String?,
       isPinned: (map['isPinned'] ?? 0) == 1,
       // Metin olarak kaydedilen zaman damgasını tekrar DateTime nesnesine çeviriyoruz.
       pinnedTimestamp: map['pinnedTimestamp'] != null

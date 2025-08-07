@@ -1,7 +1,6 @@
 // lib/widgets/modern_empty_state.dart - MODERN VE MİNİMAL EMPTY STATE
 
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 class ModernEmptyState extends StatefulWidget {
   final String title;
@@ -225,8 +224,6 @@ class _CoolActionButtonState extends State<_CoolActionButton>
   late AnimationController _pressController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  bool _isHovered = false;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -267,17 +264,14 @@ class _CoolActionButtonState extends State<_CoolActionButton>
   }
 
   void _handleTapDown(TapDownDetails details) {
-    setState(() => _isPressed = true);
     _pressController.forward();
   }
 
   void _handleTapUp(TapUpDetails details) {
-    setState(() => _isPressed = false);
     _pressController.reverse();
   }
 
   void _handleTapCancel() {
-    setState(() => _isPressed = false);
     _pressController.reverse();
   }
 
@@ -285,11 +279,9 @@ class _CoolActionButtonState extends State<_CoolActionButton>
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) {
-        setState(() => _isHovered = true);
         _hoverController.forward();
       },
       onExit: (_) {
-        setState(() => _isHovered = false);
         _hoverController.reverse();
       },
       child: GestureDetector(

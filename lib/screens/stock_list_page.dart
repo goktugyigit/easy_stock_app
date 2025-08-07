@@ -9,6 +9,7 @@ import '../providers/stock_provider.dart';
 import '../utils/app_theme.dart';
 import '../widgets/stock_item_card.dart';
 import '../widgets/corporate_header.dart';
+import '../widgets/modern_empty_state.dart';
 import './add_edit_stock_page.dart';
 
 // withValues extension'ının corporate_header.dart veya başka bir
@@ -529,33 +530,13 @@ class _EmptyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_shopping_cart_rounded,
-                size: 80, color: theme.textTheme.bodySmall?.color),
-            const SizedBox(height: 20),
-            Text(
-              'Henüz hiç stok eklenmemiş.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(color: theme.textTheme.bodySmall?.color),
-            ),
-            if (onAddFirst != null) ...[
-              const SizedBox(height: 25),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add_circle_outline),
-                label: const Text('İlk Stoğunu Ekle'),
-                onPressed: onAddFirst,
-              )
-            ]
-          ],
-        ),
-      ),
+    return ModernEmptyState(
+      title: 'Stok Listesi Boş',
+      subtitle: 'Henüz hiç stok eklenmemiş. İlk stoğunuzu ekleyerek başlayın.',
+      icon: Icons.inventory_2_outlined,
+      buttonText: 'İlk Stoğunu Ekle',
+      isSearching: false,
+      onButtonPressed: onAddFirst,
     );
   }
 }

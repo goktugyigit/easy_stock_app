@@ -9,13 +9,18 @@ import 'package:provider/provider.dart';
 import '../providers/stock_provider.dart';
 import '../providers/warehouse_provider.dart';
 import '../providers/shop_provider.dart';
+import '../providers/unit_provider.dart';
+import '../providers/customer_provider.dart';
 import '../models/stock_item.dart';
 import '../models/warehouse_item.dart';
 import '../models/shop_item.dart';
+import '../models/unit_item.dart';
+import '../models/customer.dart';
 import '../widgets/corporate_header.dart';
 import '../utils/app_theme.dart';
 import './add_edit_warehouse_page.dart';
 import './add_edit_shop_page.dart';
+import './add_edit_customer_page.dart';
 import '../widgets/barcode_scanner_page.dart';
 
 enum AssignmentType { none, warehouse, shop }
@@ -25,7 +30,7 @@ class AddEditStockPage extends StatefulWidget {
   final bool showQuantityField;
 
   const AddEditStockPage(
-      {super.key, this.existingItemId, this.showQuantityField = true});
+      {super.key, this.existingItemId, this.showQuantityField = false});
 
   @override
   State<AddEditStockPage> createState() => _AddEditStockPageState();
@@ -41,23 +46,24 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
   // Controllers
   final _nameController = TextEditingController();
   final _stockCodeController = TextEditingController();
-  final _quantityController = TextEditingController();
   final _barcodeController = TextEditingController();
   final _qrCodeController = TextEditingController();
   final _shelfLocationController = TextEditingController();
   final _categoryController = TextEditingController();
   final _brandController = TextEditingController();
-  final _supplierController = TextEditingController();
-  final _invoiceNumberController = TextEditingController();
   final _alertThresholdController = TextEditingController();
   final _maxStockThresholdController = TextEditingController();
 
   AssignmentType _assignmentType = AssignmentType.none;
   String? _selectedWarehouseId;
   String? _selectedShopId;
+  String? _selectedUnitId;
+  String? _selectedSupplierId;
 
   List<WarehouseItem> _warehouses = [];
   List<ShopItem> _shops = [];
+  List<UnitItem> _units = [];
+  List<Customer> _suppliers = [];
   bool _areWarehousesAndShopsLoaded = false;
 
   @override
@@ -73,16 +79,25 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
       final warehouseProvider =
           Provider.of<WarehouseProvider>(context, listen: false);
       final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      final unitProvider = Provider.of<UnitProvider>(context, listen: false);
+      final customerProvider =
+          Provider.of<CustomerProvider>(context, listen: false);
 
       await Future.wait([
         warehouseProvider.fetchAndSetItems(forceFetch: true),
-        shopProvider.fetchAndSetItems(forceFetch: true)
+        shopProvider.fetchAndSetItems(forceFetch: true),
+        unitProvider.fetchAndSetItems(forceFetch: true),
+        customerProvider.fetchAndSetCustomers(forceFetch: true),
       ]);
 
       if (mounted) {
         setState(() {
           _warehouses = warehouseProvider.items;
           _shops = shopProvider.items;
+          _units = unitProvider.units;
+          _suppliers = customerProvider.customers
+              .where((customer) => customer.type == CustomerType.supplier)
+              .toList();
           _areWarehousesAndShopsLoaded = true;
         });
       }
@@ -107,16 +122,11 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
           _editedStockItem = existingItem;
           _nameController.text = _editedStockItem.name;
           _stockCodeController.text = _editedStockItem.stockCode ?? '';
-          if (widget.showQuantityField) {
-            _quantityController.text = _editedStockItem.quantity.toString();
-          }
           _barcodeController.text = _editedStockItem.barcode ?? '';
           _qrCodeController.text = _editedStockItem.qrCode ?? '';
           _shelfLocationController.text = _editedStockItem.shelfLocation ?? '';
           _categoryController.text = _editedStockItem.category ?? '';
           _brandController.text = _editedStockItem.brand ?? '';
-          _supplierController.text = _editedStockItem.supplier ?? '';
-          _invoiceNumberController.text = _editedStockItem.invoiceNumber ?? '';
           _alertThresholdController.text =
               _editedStockItem.alertThreshold?.toString() ?? '';
           _maxStockThresholdController.text =
@@ -134,9 +144,10 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
             _assignmentType = AssignmentType.shop;
             _selectedShopId = _editedStockItem.shopId;
           }
+
+          _selectedUnitId = _editedStockItem.unitId;
+          _selectedSupplierId = _editedStockItem.supplierId;
         }
-      } else {
-        if (widget.showQuantityField) _quantityController.text = '0';
       }
     }
     _isInit = false;
@@ -147,14 +158,11 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
   void dispose() {
     _nameController.dispose();
     _stockCodeController.dispose();
-    _quantityController.dispose();
     _barcodeController.dispose();
     _qrCodeController.dispose();
     _shelfLocationController.dispose();
     _categoryController.dispose();
     _brandController.dispose();
-    _supplierController.dispose();
-    _invoiceNumberController.dispose();
     _alertThresholdController.dispose();
     _maxStockThresholdController.dispose();
     super.dispose();
@@ -189,6 +197,69 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
     }
   }
 
+  Future<void> _navigateToAddSupplier() async {
+    try {
+      final result = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (context) => const AddEditCustomerPage(
+            customerType: CustomerType.supplier,
+          ),
+        ),
+      );
+
+      if (result == true && mounted) {
+        try {
+          // Tedarikçi listesini yeniden yükle
+          final customerProvider =
+              Provider.of<CustomerProvider>(context, listen: false);
+          await customerProvider.fetchAndSetCustomers(forceFetch: true);
+
+          if (mounted) {
+            setState(() {
+              _suppliers = customerProvider.customers
+                  .where((customer) => customer.type == CustomerType.supplier)
+                  .toList();
+            });
+
+            // En son eklenen tedarikçiyi seç
+            if (_suppliers.isNotEmpty) {
+              setState(() {
+                _selectedSupplierId = _suppliers.last.id;
+              });
+            }
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tedarikçi başarıyla eklendi ve seçildi!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          }
+        } catch (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Tedarikçi listesi yüklenirken hata: $error'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tedarikçi ekleme sayfası açılırken hata: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _doSaveForm() async {
     final isValid = _formKey.currentState!.validate();
     if (!isValid) return;
@@ -202,13 +273,31 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
       return;
     }
 
+    // Birim seçimi zorunlu
+    if (_selectedUnitId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Birim seçimi zorunludur!')));
+      }
+      return;
+    }
+
+    // Tedarikçi seçimi zorunlu
+    if (_selectedSupplierId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(_suppliers.isEmpty
+                ? 'Önce bir tedarikçi eklemelisiniz! Cariler sayfasından tedarikçi ekleyebilirsiniz.'
+                : 'Tedarikçi seçimi zorunludur!')));
+      }
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     final stockProvider = Provider.of<StockProvider>(context, listen: false);
     final name = _nameController.text;
-    final quantity = widget.showQuantityField
-        ? (int.tryParse(_quantityController.text) ?? 0)
-        : 0;
+    final quantity = 0; // Miktar her zaman 0 olarak ayarlanır
     final imagePath = _pickedImageFile?.path;
     final finalWarehouseId = _assignmentType == AssignmentType.warehouse
         ? _selectedWarehouseId
@@ -227,14 +316,14 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
           stockCode: _stockCodeController.text,
           category: _categoryController.text,
           brand: _brandController.text,
-          supplier: _supplierController.text,
-          invoiceNumber: _invoiceNumberController.text,
           barcode: _barcodeController.text,
           qrCode: _qrCodeController.text,
           alertThreshold: int.tryParse(_alertThresholdController.text),
           maxStockThreshold: int.tryParse(_maxStockThresholdController.text),
           warehouseId: finalWarehouseId,
           shopId: finalShopId,
+          unitId: _selectedUnitId,
+          supplierId: _selectedSupplierId,
         );
       } else {
         stockProvider.addItem(
@@ -245,14 +334,14 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
           stockCode: _stockCodeController.text,
           category: _categoryController.text,
           brand: _brandController.text,
-          supplier: _supplierController.text,
-          invoiceNumber: _invoiceNumberController.text,
           barcode: _barcodeController.text,
           qrCode: _qrCodeController.text,
           alertThreshold: int.tryParse(_alertThresholdController.text),
           maxStockThreshold: int.tryParse(_maxStockThresholdController.text),
           warehouseId: finalWarehouseId,
           shopId: finalShopId,
+          unitId: _selectedUnitId,
+          supplierId: _selectedSupplierId,
         );
       }
       if (mounted) Navigator.of(context).pop();
@@ -471,21 +560,121 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                     const SizedBox(height: 12),
                     _buildTextField('Stok Kodu', _stockCodeController,
                         icon: Icons.qr_code_2),
-                    if (widget.showQuantityField) ...[
-                      const SizedBox(height: 12),
-                      _buildTextField('Miktar (*)', _quantityController,
-                          icon: Icons.format_list_numbered,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ], validator: (v) {
-                        if (v == null || v.isEmpty) return 'Miktar zorunludur.';
-                        if ((int.tryParse(v) ?? -1) < 0) {
-                          return 'Geçerli bir miktar girin.';
+                    const SizedBox(height: 12),
+
+                    // Birim Seçimi (Zorunlu)
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Birim (*)',
+                        prefixIcon: Icon(Icons.straighten_outlined,
+                            color: Colors.grey[400]),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey[800],
+                      ),
+                      value: _selectedUnitId,
+                      isExpanded: true,
+                      items: _units
+                          .map((unit) => DropdownMenuItem(
+                                value: unit.id,
+                                child: Text(
+                                  '${unit.name} (${unit.shortName})',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (String? value) {
+                        setState(() {
+                          _selectedUnitId = value;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Birim seçimi zorunludur!' : null,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Tedarikçi Seçimi (Zorunlu)
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Tedarikçi (*)',
+                        prefixIcon: Icon(Icons.business_outlined,
+                            color: Colors.grey[400]),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.grey[800],
+                      ),
+                      value: _selectedSupplierId,
+                      isExpanded: true,
+                      items: [
+                        // Eğer tedarikçi yoksa önce bilgilendirici mesaj göster
+                        if (_suppliers.isEmpty)
+                          const DropdownMenuItem(
+                            value: null,
+                            enabled: false,
+                            child: Text(
+                              'Tedarikçi yok - Yeni ekleyin',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontStyle: FontStyle.italic,
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        // Mevcut tedarikçileri listele
+                        ..._suppliers.map((supplier) => DropdownMenuItem(
+                              value: supplier.id,
+                              child: Text(
+                                supplier.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            )),
+                        // Yeni tedarikçi ekle seçeneği
+                        const DropdownMenuItem(
+                          value: 'add_new_supplier',
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, size: 16, color: Colors.blue),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '+ Yeni Ekle',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        if (value == 'add_new_supplier') {
+                          // Dropdown'ı resetle
+                          setState(() {
+                            _selectedSupplierId = null;
+                          });
+                          _navigateToAddSupplier();
+                        } else {
+                          setState(() {
+                            _selectedSupplierId = value;
+                          });
                         }
-                        return null;
-                      }),
-                    ],
+                      },
+                      validator: (value) =>
+                          value == null || value == 'add_new_supplier'
+                              ? 'Tedarikçi seçimi zorunludur!'
+                              : null,
+                    ),
                     _buildSectionHeader('Konum'),
                     if (_warehouses.isEmpty && _shops.isEmpty)
                       _buildEmptyStateCard()
@@ -544,11 +733,6 @@ class _AddEditStockPageState extends State<AddEditStockPage> {
                     _buildTextField('Marka', _brandController,
                         icon: Icons.star_border_outlined),
                     const SizedBox(height: 12),
-                    _buildTextField('Tedarikçi', _supplierController,
-                        icon: Icons.business_center_outlined),
-                    const SizedBox(height: 12),
-                    _buildTextField('Fatura Numarası', _invoiceNumberController,
-                        icon: Icons.receipt_long_outlined),
                     _buildSectionHeader('Kodlar'),
                     _buildTextField('Barkod', _barcodeController,
                         icon: Icons.barcode_reader,

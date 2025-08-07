@@ -105,6 +105,8 @@ class StockProvider with ChangeNotifier {
     int? maxStockThreshold,
     String? warehouseId,
     String? shopId,
+    String? unitId,
+    String? supplierId,
   }) {
     final newItem = StockItem(
       id: _uuid.v4(),
@@ -123,6 +125,8 @@ class StockProvider with ChangeNotifier {
       maxStockThreshold: maxStockThreshold,
       warehouseId: warehouseId,
       shopId: shopId,
+      unitId: unitId,
+      supplierId: supplierId,
       // Yeni eklenen ürün sabitlenmemiş olur.
       isPinned: false,
       pinnedTimestamp: null,
@@ -157,6 +161,8 @@ class StockProvider with ChangeNotifier {
     int? maxStockThreshold,
     String? warehouseId,
     String? shopId,
+    String? unitId,
+    String? supplierId,
   }) {
     final itemIndex = _items.indexWhere((item) => item.id == id);
     if (itemIndex >= 0) {
@@ -179,6 +185,8 @@ class StockProvider with ChangeNotifier {
         maxStockThreshold: maxStockThreshold,
         warehouseId: warehouseId,
         shopId: shopId,
+        unitId: unitId,
+        supplierId: supplierId,
         // DÜZELTME: Güncelleme sırasında sabitleme durumu ve zaman damgası korunur.
         isPinned: originalItem.isPinned,
         pinnedTimestamp: originalItem.pinnedTimestamp,

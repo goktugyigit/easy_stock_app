@@ -2,8 +2,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 import '../models/stock_item.dart';
+import '../providers/unit_provider.dart';
+import '../providers/customer_provider.dart';
 import 'fanus_widget.dart'; // Güncellenmiş FanusWidget
 import '../utils/app_theme.dart';
 
@@ -169,18 +172,46 @@ class StockItemCard extends StatelessWidget {
                           _buildInfoRow("Kategori:", stockItem.category),
                           _buildInfoRow("Marka:", stockItem.brand),
                           _buildInfoRow("Raf Loks.:", stockItem.shelfLocation),
-                          _buildInfoRow("Tedarikçi:", stockItem.supplier),
+                          Consumer<CustomerProvider>(
+                            builder: (context, customerProvider, child) {
+                              String supplierName = stockItem.supplier ??
+                                  ""; // Eski alan için fallback
+
+                              if (stockItem.supplierId != null) {
+                                final supplier = customerProvider
+                                    .findById(stockItem.supplierId!);
+                                if (supplier != null) {
+                                  supplierName = supplier.name;
+                                }
+                              }
+
+                              return _buildInfoRow("Tedarikçi:", supplierName);
+                            },
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 10.0),
                     // DÜZELTME: FanusWidget yeni parametrelerle çağrılıyor
-                    FanusWidget(
-                      stockPercentage: stockPercentage,
-                      stockValueText: stockItem.quantity.toString(),
-                      unit:
-                          "ADET", // Burayı isteğe bağlı olarak dinamik hale getirebilirsin
-                      size: 75.0,
+                    Consumer2<UnitProvider, CustomerProvider>(
+                      builder:
+                          (context, unitProvider, customerProvider, child) {
+                        String unitText = "ADET"; // Varsayılan
+
+                        if (stockItem.unitId != null) {
+                          final unit = unitProvider.findById(stockItem.unitId!);
+                          if (unit != null) {
+                            unitText = unit.shortName.toUpperCase();
+                          }
+                        }
+
+                        return FanusWidget(
+                          stockPercentage: stockPercentage,
+                          stockValueText: stockItem.quantity.toString(),
+                          unit: unitText,
+                          size: 75.0,
+                        );
+                      },
                     ),
                   ],
                 ),
