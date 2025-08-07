@@ -1,4 +1,3 @@
-// lib/screens/home_page_with_search.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, setEquals;
@@ -11,7 +10,19 @@ import './add_edit_stock_page.dart';
 import '../widgets/stock_item_card.dart';
 import '../utils/app_theme.dart';
 import '../widgets/dialogs/show_stock_options_dialog.dart';
-import '../widgets/corporate_header.dart';
+import '../widgets/ultra_modern_header.dart';
+import '../widgets/main_screen_with_bottom_nav.dart'; // Navbar boyutları için import
+
+// Projenizin linter kurallarına uyum sağlamak için bu Color extension'ının
+// projenizde tanımlı olduğu varsayılıyor.
+extension ColorValues on Color {
+  Color withValues({double? alpha}) {
+    if (alpha != null) {
+      return withAlpha((alpha * 255).round().clamp(0, 255));
+    }
+    return this;
+  }
+}
 
 class HomePageWithSearch extends StatefulWidget {
   const HomePageWithSearch({super.key});
@@ -25,7 +36,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   final FocusNode _searchFocusNode = FocusNode(); // App Store mantığı için
   List<StockItem> _filteredItems = [];
   bool _isSearching = false;
-  bool _isSearchFocused = false; // Focus durumu takibi
   int _globalMaxStockThreshold = 100;
   bool _isLoadingSettings = true;
 
@@ -50,9 +60,9 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     _searchController.addListener(_onSearchChanged);
     // App Store mantığı için focus listener
     _searchFocusNode.addListener(() {
-      setState(() {
-        _isSearchFocused = _searchFocusNode.hasFocus;
-      });
+      if (mounted) {
+        setState(() {});
+      }
     });
     _loadPageData();
     stockProvider.addListener(_providerListener);
@@ -79,10 +89,10 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
 
   void _showStyledFlushbar(BuildContext context, String message,
       {Widget? mainButton}) {
-    // AMK 1 YAPALIM BAKALIM NE OLACAK
-    final mediaQuery = MediaQuery.of(context);
-    final double bottomSafeArea = mediaQuery.padding.bottom;
-    final double viewInsetsBottom = mediaQuery.viewInsets.bottom;
+    // KESİN ÇÖZÜM: Navbar'ın gerçek boyutlarını ve aradaki boşluğu tanımlıyoruz.
+    const double navBarHeight = MainScreenWithBottomNav.navBarHeight;
+    const double navBarMargin = MainScreenWithBottomNav.navBarBottomMargin;
+    const double flushbarGap = 8.0; // Navbar ile arasındaki boşluk
 
     Flushbar(
       messageText: Row(
@@ -101,12 +111,13 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
       ),
       mainButton: mainButton,
       flushbarPosition: FlushbarPosition.BOTTOM,
-      forwardAnimationCurve: Curves.elasticOut,
-      reverseAnimationCurve: Curves.fastOutSlowIn,
+      forwardAnimationCurve: Curves.easeOutCubic,
+      reverseAnimationCurve: Curves.easeInCubic,
       backgroundColor: Colors.white,
-      borderRadius: BorderRadius.circular(30.0),
+      borderRadius: BorderRadius.circular(25.0),
       margin: EdgeInsets.only(
-        bottom: bottomSafeArea + viewInsetsBottom + 1.0,
+        // DÜZELTME: Alt boşluk, sadece navbar'ın kapladığı alan + istenen boşluk kadar olmalı.
+        bottom: navBarHeight + navBarMargin + flushbarGap,
         left: 20.0,
         right: 20.0,
       ),
@@ -119,7 +130,7 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
         ),
       ],
       duration: const Duration(seconds: 4),
-      animationDuration: const Duration(milliseconds: 400),
+      animationDuration: const Duration(milliseconds: 300),
       isDismissible: true,
     ).show(context);
   }
@@ -229,14 +240,15 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
     _searchController.clear();
     _searchFocusNode.unfocus();
     setState(() {
-      _isSearchFocused = false;
       _isSearching = false;
     });
   }
 
-  // Keyboard'u kapat
+  // Keyboard'u kapat ve search'i iptal et
   void _dismissKeyboard() {
-    _searchFocusNode.unfocus();
+    if (_searchFocusNode.hasFocus) {
+      _cancelSearch(); // Search aktifse tamamen iptal et
+    }
   }
 
   // QR Kod tarama
@@ -253,11 +265,6 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
   void _showAdvancedFilter() {
     _showStyledFlushbar(
         context, "Gelişmiş filtreleme özelliği yakında eklenecek.");
-  }
-
-  // Logo seçme
-  void _selectLogo() {
-    _showStyledFlushbar(context, "Logo seçme özelliği yakında eklenecek.");
   }
 
   @override
@@ -374,92 +381,173 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     _updateTotalBottomClearance();
 
     return GestureDetector(
       // App Store mantığı - dışarıya tıklanınca klavye kapansın
       onTap: _dismissKeyboard,
       child: Scaffold(
-        backgroundColor: AppTheme.appBackgroundColor,
-        appBar: CorporateHeader(
+        backgroundColor: Colors.black,
+        extendBodyBehindAppBar: true,
+        resizeToAvoidBottomInset:
+            false, // Klavye açılınca resize yapmasını engelle
+        appBar: UltraModernHeader(
           title: 'Ana Sayfa',
-          showSearchBar: true,
-          showActionButtons: true,
           searchController: _searchController,
           searchFocusNode: _searchFocusNode,
           onQRScan: _scanQRCode,
           onBarcodeScan: _scanBarcode,
           onFilterTap: _showAdvancedFilter,
           onSearchCancel: _cancelSearch,
-          isSearchFocused: _isSearchFocused,
-          searchHint: 'Stok ara, barkod tara...',
+          searchHint: 'Stok ara',
         ),
-        body: SafeArea(
-          child: _isLoadingSettings
-              ? const Center(child: CircularProgressIndicator())
-              : Consumer<StockProvider>(
-                  builder: (consumerCtx, stockProvider, _) {
-                    _updateFilteredItems(stockProvider.items);
-                    final itemsToDisplay = _filteredItems;
-                    return Stack(
-                      children: [
-                      // iOS Style Pull-to-Refresh with CupertinoSliverRefreshControl
-                      NotificationListener<OverscrollIndicatorNotification>(
-                        onNotification:
-                            (OverscrollIndicatorNotification notification) {
-                          notification.disallowIndicator();
-                          return true;
-                        },
-                        child: CustomScrollView(
-                          controller: _scrollController,
-                          physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
-                          ),
-                          slivers: [
-                            // iOS tarzı refresh control
-                            CupertinoSliverRefreshControl(
-                              onRefresh: _loadPageData,
-                              refreshTriggerPullDistance: 80.0, // iOS standart
-                              refreshIndicatorExtent: 60.0, // iOS standart
-                            ),
-                            // Ana içerik
-                            itemsToDisplay.isEmpty
-                                ? SliverFillRemaining(
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(30.0),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              _isSearching
-                                                  ? Icons.search_off_rounded
-                                                  : Icons
-                                                      .add_shopping_cart_rounded,
-                                              size: 80,
-                                              color: theme
-                                                  .textTheme.bodySmall?.color,
+        body: Container(
+          decoration: const BoxDecoration(
+            color: Colors.black,
+          ),
+          child: SafeArea(
+            child: _isLoadingSettings
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF00C6FF),
+                    ),
+                  )
+                : Consumer<StockProvider>(
+                    builder: (consumerCtx, stockProvider, _) {
+                      _updateFilteredItems(stockProvider.items);
+                      final itemsToDisplay = _filteredItems;
+                      // Empty state tamamen ayrı widget - keyboard-aware
+                      if (itemsToDisplay.isEmpty) {
+                        return Container(
+                          color: Colors.black,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              // Keyboard yüksekliğini hesapla
+                              final keyboardHeight =
+                                  MediaQuery.of(context).viewInsets.bottom;
+                              final availableHeight =
+                                  constraints.maxHeight - keyboardHeight;
+
+                              // Responsive margin ve padding
+                              final margin =
+                                  availableHeight > 400 ? 30.0 : 20.0;
+                              final padding =
+                                  availableHeight > 400 ? 30.0 : 20.0;
+
+                              return Center(
+                                child: SingleChildScrollView(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    elevation: 12,
+                                    child: Container(
+                                      margin: EdgeInsets.all(margin),
+                                      padding: EdgeInsets.all(padding),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.3),
+                                          width: 2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFF00C6FF)
+                                                .withValues(alpha: 0.4),
+                                            blurRadius: 30,
+                                            offset: const Offset(0, 15),
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            _isSearching
+                                                ? Icons.search_off_rounded
+                                                : Icons
+                                                    .add_shopping_cart_rounded,
+                                            size: availableHeight > 400
+                                                ? 80
+                                                : 60, // Responsive icon size
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(
+                                              height: availableHeight > 400
+                                                  ? 20
+                                                  : 15), // Responsive spacing
+                                          Text(
+                                            _isSearching
+                                                ? 'Aramanızla eşleşen stok bulunamadı.'
+                                                : 'Henüz hiç stok eklenmemiş.',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: availableHeight > 400
+                                                  ? 18
+                                                  : 16, // Responsive font size
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                            const SizedBox(height: 20),
-                                            Text(
-                                              _isSearching
-                                                  ? 'Aramanizla eslesen stok bulunamadi.'
-                                                  : 'Henüz hiç stok eklenmemiş.',
-                                              style: theme.textTheme.titleMedium
-                                                  ?.copyWith(
-                                                      color: theme.textTheme
-                                                          .bodySmall?.color),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            if (!_isSearching) ...[
-                                              const SizedBox(height: 25),
-                                              ElevatedButton.icon(
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          if (!_isSearching) ...[
+                                            SizedBox(
+                                                height: availableHeight > 400
+                                                    ? 25
+                                                    : 20), // Responsive spacing
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                gradient: const LinearGradient(
+                                                  colors: [
+                                                    Color(0xFF00C6FF),
+                                                    Color(0xFF0072FF)
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color:
+                                                        const Color(0xFF00C6FF)
+                                                            .withValues(
+                                                                alpha: 0.4),
+                                                    blurRadius: 15,
+                                                    offset: const Offset(0, 8),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: ElevatedButton.icon(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  shadowColor:
+                                                      Colors.transparent,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal: 32,
+                                                    vertical: 16,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16),
+                                                  ),
+                                                ),
                                                 icon: const Icon(
-                                                    Icons.add_circle_outline),
+                                                  Icons.add_circle_outline,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
                                                 label: const Text(
-                                                    'İlk Stoğunu Ekle'),
+                                                  'İlk Stoğunu Ekle',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
                                                 onPressed: () => Navigator.of(
                                                         context,
                                                         rootNavigator: true)
@@ -469,304 +557,225 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                           const AddEditStockPage()),
                                                 )
                                                     .then((_) {
-                                                  if (mounted) _loadPageData();
+                                                  if (mounted) {
+                                                    _loadPageData();
+                                                  }
                                                 }),
-                                              )
-                                            ]
-                                          ],
-                                        ),
+                                              ),
+                                            ),
+                                          ]
+                                        ],
                                       ),
                                     ),
-                                  )
-                                : SliverPadding(
-                                    padding: EdgeInsets.only(
-                                      top: listItemVerticalPadding,
-                                      bottom: _totalBottomClearance +
-                                          MediaQuery.of(context).viewInsets.bottom +
-                                          12.0,
-                                    ),
-                                    sliver: SliverList(
-                                      delegate: SliverChildBuilderDelegate(
-                                        (listCtx, i) {
-                                          final item = itemsToDisplay[i];
-                                          final bool isTappable =
-                                              !_disabledCardIds
-                                                  .contains(item.id);
-                                          final GlobalKey dismissibleKey =
-                                              _itemDismissibleKeys.putIfAbsent(
-                                                  item.id, () => GlobalKey());
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      }
 
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: pageHorizontalPadding,
-                                              vertical: listItemVerticalPadding,
-                                            ),
-                                            child: LayoutBuilder(
-                                              builder: (BuildContext
-                                                      layoutBuilderContext,
-                                                  BoxConstraints constraints) {
-                                                final double cardWidth =
-                                                    constraints.maxWidth;
-                                                final double currentProgress =
-                                                    _swipeProgress[item.id] ??
-                                                        0.0;
-                                                final DismissDirection?
-                                                    currentDirection =
-                                                    _swipeDirection[item.id];
-                                                double backgroundRevealWidth =
-                                                    cardWidth * currentProgress;
-                                                double totalBackgroundWidth =
-                                                    backgroundRevealWidth +
-                                                        (currentProgress > 0.01
-                                                            ? actionBackgroundOverdrag
-                                                            : 0.0);
-                                                if (currentProgress < 0.01) {
-                                                  totalBackgroundWidth = 0;
-                                                }
+                      return Stack(
+                        children: [
+                          // iOS Style Pull-to-Refresh with CupertinoSliverRefreshControl
+                          NotificationListener<OverscrollIndicatorNotification>(
+                            onNotification:
+                                (OverscrollIndicatorNotification notification) {
+                              notification.disallowIndicator();
+                              return true;
+                            },
+                            child: CustomScrollView(
+                              controller: _scrollController,
+                              physics: const BouncingScrollPhysics(
+                                parent: AlwaysScrollableScrollPhysics(),
+                              ),
+                              slivers: [
+                                // iOS tarzı refresh control
+                                CupertinoSliverRefreshControl(
+                                  onRefresh: _loadPageData,
+                                  refreshTriggerPullDistance:
+                                      80.0, // iOS standart
+                                  refreshIndicatorExtent: 60.0, // iOS standart
+                                ),
+                                // Ana içerik
+                                SliverPadding(
+                                  padding: EdgeInsets.only(
+                                    top: listItemVerticalPadding,
+                                    bottom: _totalBottomClearance +
+                                        MediaQuery.of(context)
+                                            .viewInsets
+                                            .bottom +
+                                        12.0,
+                                  ),
+                                  sliver: SliverList(
+                                    delegate: SliverChildBuilderDelegate(
+                                      (listCtx, i) {
+                                        final item = itemsToDisplay[i];
+                                        final bool isTappable =
+                                            !_disabledCardIds.contains(item.id);
+                                        final GlobalKey dismissibleKey =
+                                            _itemDismissibleKeys.putIfAbsent(
+                                                item.id, () => GlobalKey());
 
-                                                return ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          StockItemCard
-                                                              .cardRadius),
-                                                  child: Stack(
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      if (currentDirection !=
-                                                          null)
-                                                        Positioned(
-                                                          top: 0,
-                                                          bottom: 0,
-                                                          left: currentDirection ==
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: pageHorizontalPadding,
+                                            vertical: listItemVerticalPadding,
+                                          ),
+                                          child: LayoutBuilder(
+                                            builder: (BuildContext
+                                                    layoutBuilderContext,
+                                                BoxConstraints constraints) {
+                                              final double cardWidth =
+                                                  constraints.maxWidth;
+                                              final double currentProgress =
+                                                  _swipeProgress[item.id] ??
+                                                      0.0;
+                                              final DismissDirection?
+                                                  currentDirection =
+                                                  _swipeDirection[item.id];
+                                              double backgroundRevealWidth =
+                                                  cardWidth * currentProgress;
+                                              double totalBackgroundWidth =
+                                                  backgroundRevealWidth +
+                                                      (currentProgress > 0.01
+                                                          ? actionBackgroundOverdrag
+                                                          : 0.0);
+                                              if (currentProgress < 0.01) {
+                                                totalBackgroundWidth = 0;
+                                              }
+
+                                              return ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        StockItemCard
+                                                            .cardRadius),
+                                                child: Stack(
+                                                  alignment: Alignment.center,
+                                                  children: [
+                                                    if (currentDirection !=
+                                                        null)
+                                                      Positioned(
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        left: currentDirection ==
+                                                                DismissDirection
+                                                                    .startToEnd
+                                                            ? 0
+                                                            : null,
+                                                        right: currentDirection ==
+                                                                DismissDirection
+                                                                    .endToStart
+                                                            ? 0
+                                                            : null,
+                                                        width: totalBackgroundWidth
+                                                            .clamp(
+                                                                0.0,
+                                                                cardWidth +
+                                                                    actionBackgroundOverdrag),
+                                                        child:
+                                                            _buildActionBackgroundLayer(
+                                                          currentDirection ==
                                                                   DismissDirection
                                                                       .startToEnd
-                                                              ? 0
-                                                              : null,
-                                                          right: currentDirection ==
+                                                              ? AppTheme
+                                                                  .accentColor
+                                                              : Colors
+                                                                  .red.shade700,
+                                                          currentDirection ==
                                                                   DismissDirection
-                                                                      .endToStart
-                                                              ? 0
-                                                              : null,
-                                                          width: totalBackgroundWidth
-                                                              .clamp(
-                                                                  0.0,
-                                                                  cardWidth +
-                                                                      actionBackgroundOverdrag),
-                                                          child:
-                                                              _buildActionBackgroundLayer(
-                                                            currentDirection ==
-                                                                    DismissDirection
-                                                                        .startToEnd
-                                                                ? AppTheme
-                                                                    .accentColor
-                                                                : Colors.red
-                                                                    .shade700,
-                                                            currentDirection ==
-                                                                    DismissDirection
-                                                                        .startToEnd
-                                                                ? Icons.push_pin
-                                                                : Icons
-                                                                    .delete_sweep_outlined, // İkonu değiştirdik
-                                                            currentDirection ==
-                                                                    DismissDirection
-                                                                        .startToEnd
-                                                                ? Alignment
-                                                                    .centerLeft
-                                                                : Alignment
-                                                                    .centerRight,
-                                                          ),
+                                                                      .startToEnd
+                                                              ? Icons.push_pin
+                                                              : Icons
+                                                                  .delete_sweep_outlined, // İkonu değiştirdik
+                                                          currentDirection ==
+                                                                  DismissDirection
+                                                                      .startToEnd
+                                                              ? Alignment
+                                                                  .centerLeft
+                                                              : Alignment
+                                                                  .centerRight,
                                                         ),
-                                                      Dismissible(
-                                                        key: dismissibleKey,
-                                                        background: Container(
-                                                            color: Colors
-                                                                .transparent),
-                                                        secondaryBackground:
-                                                            Container(
-                                                                color: Colors
-                                                                    .transparent),
-                                                        onUpdate: (details) {
-                                                          setState(() {
-                                                            _swipeProgress[
-                                                                    item.id] =
-                                                                details
-                                                                    .progress;
-                                                            _swipeDirection[
-                                                                    item.id] =
-                                                                details
-                                                                    .direction;
-                                                          });
-                                                        },
-                                                        direction:
+                                                      ),
+                                                    Dismissible(
+                                                      key: dismissibleKey,
+                                                      background: Container(
+                                                          color: Colors
+                                                              .transparent),
+                                                      secondaryBackground:
+                                                          Container(
+                                                              color: Colors
+                                                                  .transparent),
+                                                      onUpdate: (details) {
+                                                        setState(() {
+                                                          _swipeProgress[
+                                                                  item.id] =
+                                                              details.progress;
+                                                          _swipeDirection[
+                                                                  item.id] =
+                                                              details.direction;
+                                                        });
+                                                      },
+                                                      direction:
+                                                          DismissDirection
+                                                              .horizontal,
+                                                      confirmDismiss:
+                                                          (direction) async {
+                                                        bool? confirmed = false;
+                                                        final currentItemContext =
+                                                            listCtx;
+
+                                                        if (direction ==
                                                             DismissDirection
-                                                                .horizontal,
-                                                        confirmDismiss:
-                                                            (direction) async {
-                                                          bool? confirmed =
-                                                              false;
-                                                          final currentItemContext =
-                                                              listCtx;
+                                                                .startToEnd) {
+                                                          if (!mounted) {
+                                                            return false;
+                                                          }
+                                                          // SABİTLEME MANTIĞI
+                                                          await stockProvider
+                                                              .togglePinStatus(
+                                                                  item.id);
+                                                          final updatedItem =
+                                                              stockProvider
+                                                                  .items
+                                                                  .firstWhere((i) =>
+                                                                      i.id ==
+                                                                      item.id);
 
-                                                          if (direction ==
-                                                              DismissDirection
-                                                                  .startToEnd) {
-                                                            if (!mounted) {
-                                                              return false;
-                                                            }
-                                                            // SABİTLEME MANTIĞI
-                                                            await stockProvider
-                                                                .togglePinStatus(
-                                                                    item.id);
-                                                            final updatedItem =
-                                                                stockProvider
-                                                                    .items
-                                                                    .firstWhere((i) =>
-                                                                        i.id ==
-                                                                        item.id);
-
-                                                            // LİSTEYİ YENIDEN SIRALA (WhatsApp mantığı için kritik!)
-                                                            if (mounted) {
-                                                              setState(() {
-                                                                _updateFilteredItems(
-                                                                    stockProvider
-                                                                        .items);
-                                                              });
-                                                            }
-
+                                                          // LİSTEYİ YENIDEN SIRALA (WhatsApp mantığı için kritik!)
+                                                          if (mounted) {
+                                                            setState(() {
+                                                              _updateFilteredItems(
+                                                                  stockProvider
+                                                                      .items);
+                                                            });
+                                                          }
+                                                          if (!mounted) {
+                                                            return false;
+                                                          }
+                                                          if (currentItemContext
+                                                              .mounted) {
                                                             _showStyledFlushbar(
                                                                 currentItemContext,
                                                                 updatedItem
                                                                         .isPinned
                                                                     ? '"${item.name}" sabitlendi.'
                                                                     : '"${item.name}" sabitlemesi kaldırıldı.');
-                                                            confirmed =
-                                                                false; // Kartın kaybolmasını engelle
-                                                          } else if (direction ==
-                                                              DismissDirection
-                                                                  .endToStart) {
-                                                            confirmed =
-                                                                await _showDeleteConfirmationDialog(
-                                                                    currentItemContext,
-                                                                    item);
-                                                            confirmed ??= false;
                                                           }
+                                                          confirmed =
+                                                              false; // Kartın kaybolmasını engelle
+                                                        } else if (direction ==
+                                                            DismissDirection
+                                                                .endToStart) {
+                                                          confirmed =
+                                                              await _showDeleteConfirmationDialog(
+                                                                  currentItemContext,
+                                                                  item);
+                                                          confirmed ??= false;
+                                                        }
 
-                                                          if (confirmed ==
-                                                              false) {
-                                                            setState(() {
-                                                              _swipeProgress
-                                                                  .remove(
-                                                                      item.id);
-                                                              _swipeDirection
-                                                                  .remove(
-                                                                      item.id);
-                                                            });
-                                                          }
-                                                          return confirmed;
-                                                        },
-                                                        onDismissed:
-                                                            (direction) {
-                                                          if (direction ==
-                                                              DismissDirection
-                                                                  .endToStart) {
-                                                            final originalItem =
-                                                                StockItem
-                                                                    .fromMap(item
-                                                                        .toMap());
-                                                            stockProvider
-                                                                .deleteItem(
-                                                                    item.id,
-                                                                    notify:
-                                                                        true);
-                                                            if (mounted) {
-                                                              bool
-                                                                  isUndoPressed =
-                                                                  false;
-
-                                                              final undoButton =
-                                                                  TextButton(
-                                                                onPressed: () {
-                                                                  if (isUndoPressed) {
-                                                                    return;
-                                                                  }
-                                                                  isUndoPressed =
-                                                                      true;
-
-                                                                  stockProvider
-                                                                      .addItem(
-                                                                    name: originalItem
-                                                                        .name,
-                                                                    quantity:
-                                                                        originalItem
-                                                                            .quantity,
-                                                                    barcode:
-                                                                        originalItem
-                                                                            .barcode,
-                                                                    qrCode: originalItem
-                                                                        .qrCode,
-                                                                    shelfLocation:
-                                                                        originalItem
-                                                                            .shelfLocation,
-                                                                    stockCode:
-                                                                        originalItem
-                                                                            .stockCode,
-                                                                    category:
-                                                                        originalItem
-                                                                            .category,
-                                                                    localImagePath:
-                                                                        originalItem
-                                                                            .localImagePath,
-                                                                    alertThreshold:
-                                                                        originalItem
-                                                                            .alertThreshold,
-                                                                    brand: originalItem
-                                                                        .brand,
-                                                                    supplier:
-                                                                        originalItem
-                                                                            .supplier,
-                                                                    invoiceNumber:
-                                                                        originalItem
-                                                                            .invoiceNumber,
-                                                                    maxStockThreshold:
-                                                                        originalItem
-                                                                            .maxStockThreshold,
-                                                                    warehouseId:
-                                                                        originalItem
-                                                                            .warehouseId,
-                                                                    shopId: originalItem
-                                                                        .shopId,
-                                                                  );
-
-                                                                  // Güvenli pop
-                                                                  if (Navigator
-                                                                      .canPop(
-                                                                          context)) {
-                                                                    Navigator.pop(
-                                                                        context);
-                                                                  }
-                                                                },
-                                                                child: Text(
-                                                                  "GERİ AL",
-                                                                  style: TextStyle(
-                                                                      color: Theme.of(
-                                                                              context)
-                                                                          .primaryColor,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              );
-
-                                                              if (mounted) {
-                                                                _showStyledFlushbar(
-                                                                  context,
-                                                                  '"${originalItem.name}" silindi.',
-                                                                  mainButton:
-                                                                      undoButton,
-                                                                );
-                                                              }
-                                                            }
-                                                          }
+                                                        if (confirmed ==
+                                                            false) {
                                                           setState(() {
                                                             _swipeProgress
                                                                 .remove(
@@ -775,94 +784,204 @@ class _HomePageWithSearchState extends State<HomePageWithSearch> {
                                                                 .remove(
                                                                     item.id);
                                                           });
-                                                        },
-                                                        child: StockItemCard(
-                                                          key: ValueKey(
-                                                              'stock_card_fg_${item.id}'),
-                                                          stockItem: item,
-                                                          globalMaxStockThreshold:
-                                                              _globalMaxStockThreshold,
-                                                          onTap: isTappable
-                                                              ? () {
-                                                                  showStockOptionsDialog(
-                                                                      context,
-                                                                      item);
+                                                        }
+                                                        return confirmed;
+                                                      },
+                                                      onDismissed: (direction) {
+                                                        if (direction ==
+                                                            DismissDirection
+                                                                .endToStart) {
+                                                          final originalItem =
+                                                              StockItem.fromMap(
+                                                                  item.toMap());
+                                                          stockProvider
+                                                              .deleteItem(
+                                                                  item.id,
+                                                                  notify: true);
+                                                          if (mounted) {
+                                                            bool isUndoPressed =
+                                                                false;
+
+                                                            final undoButton =
+                                                                TextButton(
+                                                              onPressed: () {
+                                                                if (isUndoPressed) {
+                                                                  return;
                                                                 }
-                                                              : null,
-                                                        ),
+                                                                isUndoPressed =
+                                                                    true;
+
+                                                                stockProvider
+                                                                    .addItem(
+                                                                  name:
+                                                                      originalItem
+                                                                          .name,
+                                                                  quantity:
+                                                                      originalItem
+                                                                          .quantity,
+                                                                  barcode:
+                                                                      originalItem
+                                                                          .barcode,
+                                                                  qrCode:
+                                                                      originalItem
+                                                                          .qrCode,
+                                                                  shelfLocation:
+                                                                      originalItem
+                                                                          .shelfLocation,
+                                                                  stockCode:
+                                                                      originalItem
+                                                                          .stockCode,
+                                                                  category:
+                                                                      originalItem
+                                                                          .category,
+                                                                  localImagePath:
+                                                                      originalItem
+                                                                          .localImagePath,
+                                                                  alertThreshold:
+                                                                      originalItem
+                                                                          .alertThreshold,
+                                                                  brand:
+                                                                      originalItem
+                                                                          .brand,
+                                                                  supplier:
+                                                                      originalItem
+                                                                          .supplier,
+                                                                  invoiceNumber:
+                                                                      originalItem
+                                                                          .invoiceNumber,
+                                                                  maxStockThreshold:
+                                                                      originalItem
+                                                                          .maxStockThreshold,
+                                                                  warehouseId:
+                                                                      originalItem
+                                                                          .warehouseId,
+                                                                  shopId:
+                                                                      originalItem
+                                                                          .shopId,
+                                                                );
+
+                                                                // Güvenli pop
+                                                                if (Navigator
+                                                                    .canPop(
+                                                                        context)) {
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                }
+                                                              },
+                                                              child: Text(
+                                                                "GERİ AL",
+                                                                style: TextStyle(
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .primaryColor,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                            );
+                                                            if (!mounted) {
+                                                              return;
+                                                            }
+                                                            _showStyledFlushbar(
+                                                              context,
+                                                              '"${originalItem.name}" silindi.',
+                                                              mainButton:
+                                                                  undoButton,
+                                                            );
+                                                          }
+                                                        }
+                                                        setState(() {
+                                                          _swipeProgress
+                                                              .remove(item.id);
+                                                          _swipeDirection
+                                                              .remove(item.id);
+                                                        });
+                                                      },
+                                                      child: StockItemCard(
+                                                        key: ValueKey(
+                                                            'stock_card_fg_${item.id}'),
+                                                        stockItem: item,
+                                                        globalMaxStockThreshold:
+                                                            _globalMaxStockThreshold,
+                                                        onTap: isTappable
+                                                            ? () {
+                                                                showStockOptionsDialog(
+                                                                    context,
+                                                                    item);
+                                                              }
+                                                            : null,
                                                       ),
-                                                      // RAPTIYE IKONU
-                                                      if (item.isPinned)
-                                                        Positioned(
-                                                          top: 6,
-                                                          right: 8,
-                                                          child:
-                                                              Transform.rotate(
-                                                            angle:
-                                                                0.4, // Ikonu hafifçe eğ
-                                                            child: Icon(
-                                                              Icons.push_pin,
-                                                              color: Colors
-                                                                  .white
-                                                                  .withValues(
-                                                                      alpha:
-                                                                          0.95),
-                                                              size: 20,
-                                                              shadows: const [
-                                                                BoxShadow(
-                                                                  color: Colors
-                                                                      .black54,
-                                                                  blurRadius:
-                                                                      6.0,
-                                                                  offset:
-                                                                      Offset(
-                                                                          1, 1),
-                                                                )
-                                                              ],
-                                                            ),
+                                                    ),
+                                                    // RAPTIYE IKONU
+                                                    if (item.isPinned)
+                                                      Positioned(
+                                                        top: 6,
+                                                        right: 8,
+                                                        child: Transform.rotate(
+                                                          angle:
+                                                              0.4, // Ikonu hafifçe eğ
+                                                          child: Icon(
+                                                            Icons.push_pin,
+                                                            color: Colors.white
+                                                                .withValues(
+                                                                    alpha:
+                                                                        0.95),
+                                                            size: 20,
+                                                            shadows: const [
+                                                              BoxShadow(
+                                                                color: Colors
+                                                                    .black54,
+                                                                blurRadius: 6.0,
+                                                                offset: Offset(
+                                                                    1, 1),
+                                                              )
+                                                            ],
                                                           ),
                                                         ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          );
-                                        },
-                                        childCount: itemsToDisplay.length,
-                                      ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
+                                      childCount: itemsToDisplay.length,
                                     ),
-                                  )
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
-                        left: 0,
-                        right: 0,
-                        height:
-                            _totalBottomClearance + MediaQuery.of(context).viewInsets.bottom,
-                        child: IgnorePointer(
-                          ignoring: true,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppTheme.appBackgroundColor.withAlpha(0),
-                                  AppTheme.appBackgroundColor,
-                                ],
-                                stops: const [0.0, 0.85],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+
+                          Positioned(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                            left: 0,
+                            right: 0,
+                            height: _totalBottomClearance +
+                                MediaQuery.of(context).viewInsets.bottom,
+                            child: IgnorePointer(
+                              ignoring: true,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      AppTheme.appBackgroundColor.withAlpha(0),
+                                      AppTheme.appBackgroundColor,
+                                    ],
+                                    stops: const [0.0, 0.85],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                    );
-                  },
-                ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
         ),
       ),
     );

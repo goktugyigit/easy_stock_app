@@ -1,4 +1,5 @@
-// lib/screens/customer_list_page.dart
+// lib/screens/customer_list_page.dart - TAŞMA HATASI GİDERİLDİ
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:another_flushbar/flushbar.dart';
@@ -158,7 +159,6 @@ class _CustomerListPageState extends State<CustomerListPage> {
     IconData icon =
         type == CustomerFilterType.customers ? Icons.person : Icons.business;
 
-    // Müşteriler için mavi, tedarikçiler için turuncu renk
     Color activeColor = type == CustomerFilterType.customers
         ? Colors.blue
         : Colors.orange.shade400;
@@ -186,12 +186,16 @@ class _CustomerListPageState extends State<CustomerListPage> {
               size: 20,
             ),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? activeColor : Colors.white70,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                fontSize: 16,
+            Flexible(
+              // TAŞMA ÖNLEMEK İÇİN EKLENDİ
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? activeColor : Colors.white70,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 16,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -245,68 +249,49 @@ class _CustomerListPageState extends State<CustomerListPage> {
         border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Visibility(
-            visible: _filterType != CustomerFilterType.suppliers,
-            child: Expanded(
+          if (_filterType == CustomerFilterType.customers)
+            Expanded(
+                child: _buildStatItem(
+                    'Toplam Müşteri',
+                    provider.totalCustomers.toString(),
+                    Icons.people,
+                    Colors.blue)),
+          if (_filterType == CustomerFilterType.suppliers)
+            Expanded(
+                child: _buildStatItem(
+                    'Toplam Tedarikçi',
+                    provider.totalSuppliers.toString(),
+                    Icons.business,
+                    Colors.orange.shade400)),
+          Expanded(
               child: _buildStatItem(
-                'Toplam Müşteri',
-                provider.totalCustomers.toString(),
-                Icons.people,
-                Colors.blue,
-              ),
-            ),
-          ),
-          Visibility(
-            visible: _filterType != CustomerFilterType.customers,
-            child: Expanded(
+                  'Borç',
+                  '${(_filterType == CustomerFilterType.customers ? provider.totalCustomerDebts : provider.totalSupplierDebts).toStringAsFixed(0)} ₺',
+                  Icons.arrow_downward,
+                  Colors.redAccent)),
+          Expanded(
               child: _buildStatItem(
-                'Toplam Tedarikçi',
-                provider.totalSuppliers.toString(),
-                Icons.business,
-                Colors.orange.shade400,
-              ),
-            ),
-          ),
+                  'Alacak',
+                  '${(_filterType == CustomerFilterType.customers ? provider.totalCustomerCredits : provider.totalSupplierCredits).toStringAsFixed(0)} ₺',
+                  Icons.arrow_upward,
+                  Colors.green)),
           Expanded(
-            child: _buildStatItem(
-              'Borç',
-              '${_filterType == CustomerFilterType.customers ? provider.totalCustomerDebts.toStringAsFixed(0) : _filterType == CustomerFilterType.suppliers ? provider.totalSupplierDebts.toStringAsFixed(0) : provider.totalPayables.toStringAsFixed(0)} ₺',
-              Icons.account_balance_wallet,
-              _filterType == CustomerFilterType.suppliers
-                  ? Colors.orange.shade400
-                  : Colors.blue,
-            ),
-          ),
-          Expanded(
-            child: _buildStatItem(
-              'Alacak',
-              '${_filterType == CustomerFilterType.customers ? provider.totalCustomerCredits.toStringAsFixed(0) : _filterType == CustomerFilterType.suppliers ? provider.totalSupplierCredits.toStringAsFixed(0) : provider.totalReceivables.toStringAsFixed(0)} ₺',
-              Icons.account_balance_wallet,
-              _filterType == CustomerFilterType.suppliers
-                  ? Colors.orange.shade400
-                  : Colors.blue,
-            ),
-          ),
-          Expanded(
-            child: _buildStatItem(
-              'Bakiye',
-              '${(_filterType == CustomerFilterType.customers ? provider.totalCustomerBalance : _filterType == CustomerFilterType.suppliers ? provider.totalSupplierBalance : (provider.totalReceivables - provider.totalPayables)).toStringAsFixed(0)} ₺',
-              Icons.account_balance_wallet,
-              _filterType == CustomerFilterType.customers
-                  ? Colors.blue
-                  : _filterType == CustomerFilterType.suppliers
+              child: _buildStatItem(
+                  'Bakiye',
+                  '${(_filterType == CustomerFilterType.customers ? provider.totalCustomerBalance : provider.totalSupplierBalance).toStringAsFixed(0)} ₺',
+                  Icons.account_balance_wallet,
+                  _filterType == CustomerFilterType.suppliers
                       ? Colors.orange.shade400
-                      : Colors.red,
-            ),
-          ),
+                      : Colors.blue)),
         ],
       ),
     );
   }
 
   void _showStyledFlushbar(BuildContext context, String message,
-      {Widget? mainButton, bool isError = false}) {
+      {bool isError = false}) {
     Flushbar(
       messageText: Row(
         children: [
@@ -320,36 +305,19 @@ class _CustomerListPageState extends State<CustomerListPage> {
             child: Text(
               message,
               style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14),
             ),
           ),
         ],
       ),
-      mainButton: mainButton,
       flushbarPosition: FlushbarPosition.BOTTOM,
-      forwardAnimationCurve: Curves.elasticOut,
-      reverseAnimationCurve: Curves.fastOutSlowIn,
       backgroundColor: Colors.grey[900]!,
       borderRadius: BorderRadius.circular(12.0),
       margin: const EdgeInsets.only(
-        bottom: kBottomNavigationBarHeight + 3.0,
-        left: 20,
-        right: 20,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      boxShadows: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.3),
-          offset: const Offset(0, 2),
-          blurRadius: 10,
-        ),
-      ],
-      duration: const Duration(seconds: 4),
-      animationDuration: const Duration(milliseconds: 400),
-      isDismissible: true,
+          bottom: kBottomNavigationBarHeight + 20.0, left: 20, right: 20),
+      duration: const Duration(seconds: 3),
     ).show(context);
   }
 
@@ -362,17 +330,12 @@ class _CustomerListPageState extends State<CustomerListPage> {
         Text(
           value,
           style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+              color: color, fontWeight: FontWeight.bold, fontSize: 16),
+          overflow: TextOverflow.ellipsis,
         ),
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
           textAlign: TextAlign.center,
         ),
       ],
@@ -390,13 +353,9 @@ class _CustomerListPageState extends State<CustomerListPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) => const AddEditCustomerPage(),
-                ),
-              );
-            },
+            onPressed: () => Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(builder: (_) => const AddEditCustomerPage()),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -408,8 +367,7 @@ class _CustomerListPageState extends State<CustomerListPage> {
         builder: (context, provider, child) {
           if (_isLoading || provider.isLoading) {
             return const Center(
-              child: CircularProgressIndicator(color: Colors.blue),
-            );
+                child: CircularProgressIndicator(color: Colors.blue));
           }
 
           final customers = _getFilteredCustomers(provider);
@@ -418,70 +376,65 @@ class _CustomerListPageState extends State<CustomerListPage> {
             children: [
               _buildSearchBar(),
               _buildFilterChips(),
+              const SizedBox(height: 8),
               _buildStatistics(provider),
               Expanded(
                 child: customers.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        // DÜZELTME: Column yerine ListView kullanıldı
+                        child: ListView(
+                          shrinkWrap:
+                              true, // İçeriğe göre boyutlanmasını sağlar
+                          padding: const EdgeInsets.all(30.0),
                           children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 80,
-                              color: Colors.grey[600],
-                            ),
+                            Icon(Icons.people_outline,
+                                size: 80, color: Colors.grey[600]),
                             const SizedBox(height: 16),
                             Text(
                               _searchController.text.isEmpty
                                   ? 'Henüz cari eklenmemiş'
                                   : 'Arama kriterlerine uygun cari bulunamadı',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
+                                  color: Colors.grey[600], fontSize: 16),
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context, rootNavigator: true).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const AddEditCustomerPage(),
-                                  ),
-                                );
-                              },
+                              onPressed: () =>
+                                  Navigator.of(context, rootNavigator: true)
+                                      .push(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const AddEditCustomerPage()),
+                              ),
                               icon: const Icon(Icons.add),
                               label: const Text('İlk Cariyi Ekle'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                              ),
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white),
                             ),
                           ],
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
+                        padding: const EdgeInsets.only(top: 8.0, bottom: 80),
                         itemCount: customers.length,
                         itemBuilder: (context, index) {
                           final customer = customers[index];
                           return CustomerCard(
                             customer: customer,
-                            onTap: () {
-                              Navigator.of(context, rootNavigator: true).push(
-                                MaterialPageRoute(
+                            onTap: () =>
+                                Navigator.of(context, rootNavigator: true).push(
+                              MaterialPageRoute(
                                   builder: (_) =>
-                                      CustomerDetailPage(customer: customer),
-                                ),
-                              );
-                            },
-                            onEdit: () {
-                              Navigator.of(context, rootNavigator: true).push(
-                                MaterialPageRoute(
+                                      CustomerDetailPage(customer: customer)),
+                            ),
+                            onEdit: () =>
+                                Navigator.of(context, rootNavigator: true).push(
+                              MaterialPageRoute(
                                   builder: (_) =>
-                                      AddEditCustomerPage(customer: customer),
-                                ),
-                              );
-                            },
+                                      AddEditCustomerPage(customer: customer)),
+                            ),
                             onDelete: () => _deleteCustomer(customer),
                           );
                         },

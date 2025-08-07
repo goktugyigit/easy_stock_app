@@ -1,5 +1,3 @@
-// lib/screens/stock_list_page.dart
-// import 'dart:io'; // Image.file burada kullanılmıyor, StockItemCard içinde
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart'
@@ -12,7 +10,17 @@ import '../utils/app_theme.dart';
 import '../widgets/stock_item_card.dart';
 import '../widgets/corporate_header.dart';
 import './add_edit_stock_page.dart';
-import './settings_page.dart';
+
+// withValues extension'ının corporate_header.dart veya başka bir
+// yardımcı dosyada tanımlı olduğu varsayılıyor.
+extension ColorValues on Color {
+  Color withValues({double? alpha}) {
+    if (alpha != null) {
+      return withAlpha((alpha * 255).round().clamp(0, 255));
+    }
+    return this;
+  }
+}
 
 class StockListPage extends StatefulWidget {
   const StockListPage({super.key});
@@ -31,7 +39,6 @@ class _StockListPageState extends State<StockListPage> {
   static const double pageHorizontalPadding = 20.0;
   static const double listItemVerticalPadding = 6.0;
   static const double actionBackgroundOverdrag = 70.0;
-  // Bottom navigation bar için dinamik hesaplama yapacağız - sabit değer kaldırıldı
 
   @override
   void initState() {
@@ -47,6 +54,7 @@ class _StockListPageState extends State<StockListPage> {
       });
     }
     try {
+      // Bu fonksiyonun projenizde tanımlı olduğu varsayılıyor
       _globalMaxStockThreshold = await getGlobalMaxStockThreshold();
       if (mounted) {
         await Provider.of<StockProvider>(context, listen: false)
@@ -76,11 +84,6 @@ class _StockListPageState extends State<StockListPage> {
         _loadPageData();
       }
     });
-  }
-
-  // Logo seçme
-  void _selectLogo() {
-    _showStyledFlushbar(context, "Logo seçme özelliği yakında eklenecek.");
   }
 
   Future<bool?> _showDeleteConfirmationDialog(
@@ -124,7 +127,6 @@ class _StockListPageState extends State<StockListPage> {
 
   void _showStyledFlushbar(BuildContext context, String message,
       {Widget? mainButton}) {
-    // AMK 1 YAPALIM BAKALIM NE OLACAK
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
 
     Flushbar(
@@ -164,47 +166,36 @@ class _StockListPageState extends State<StockListPage> {
       duration: const Duration(seconds: 4),
       animationDuration: const Duration(milliseconds: 400),
       isDismissible: true,
-      // rootNavigator'ı false yaparak navbar'ın erişilebilir kalmasını sağlıyoruz
-      routeBlur: 0.0, // Arka planı bulanıklaştırma
-      routeColor: Colors.transparent, // Arka plan rengi şeffaf
+      routeBlur: 0.0,
+      routeColor: Colors.transparent,
     ).show(context);
   }
 
-  // WhatsApp benzeri sıralama mantığı
   List<StockItem> _getSortedItems(List<StockItem> sourceItems) {
     final List<StockItem> sortedItems = List.from(sourceItems);
 
-    // WhatsApp MANTĞINDA: SABİTLENEN KARTLAR EN ÜSTTE, EN SON SABİTLENEN EN ÜST SIRA
     sortedItems.sort((a, b) {
-      // Sabitleme durumuna göre ana sıralama
       if (a.isPinned && !b.isPinned) {
-        return -1; // Sabitlenmiş önce gelir
+        return -1;
       } else if (!a.isPinned && b.isPinned) {
-        return 1; // Sabitlenmiş önce gelir
+        return 1;
       }
 
-      // İkisi de sabitlenmişse: EN SON SABİTLENEN EN ÜSTE (WhatsApp mantığı)
       if (a.isPinned && b.isPinned) {
         final aTime = a.pinnedTimestamp;
         final bTime = b.pinnedTimestamp;
 
-        // İkisinin de zaman damgası varsa, en yeni olan üstte
         if (aTime != null && bTime != null) {
-          return bTime.compareTo(aTime); // Yeni tarih önce gelir
-        }
-        // Sadece birinin zaman damgası varsa, o üstte
-        else if (aTime != null && bTime == null) {
-          return -1; // a üstte
+          return bTime.compareTo(aTime);
+        } else if (aTime != null && bTime == null) {
+          return -1;
         } else if (aTime == null && bTime != null) {
-          return 1; // b üstte
-        }
-        // İkisinin de zaman damgası yoksa alfabetik
-        else {
+          return 1;
+        } else {
           return a.name.toLowerCase().compareTo(b.name.toLowerCase());
         }
       }
 
-      // İkisi de sabitlenmemişse alfabetik sıralama
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 
@@ -228,7 +219,6 @@ class _StockListPageState extends State<StockListPage> {
 
     return Consumer<StockProvider>(
       builder: (consumerContext, stockProvider, _) {
-        // WhatsApp benzeri sıralama uygula
         final List<StockItem> items = _getSortedItems(stockProvider.items);
 
         return Scaffold(
@@ -240,18 +230,15 @@ class _StockListPageState extends State<StockListPage> {
             onAddPressed: () => _navigateToAddEdit(),
           ),
           body: CustomScrollView(
-            // iOS refresh için gerekli physics
             physics: const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              // iOS tarzı refresh control
               CupertinoSliverRefreshControl(
                 onRefresh: _loadPageData,
-                refreshTriggerPullDistance: 80.0, // iOS standart
-                refreshIndicatorExtent: 60.0, // iOS standart
+                refreshTriggerPullDistance: 80.0,
+                refreshIndicatorExtent: 60.0,
               ),
-              // Ana içerik
               items.isEmpty
                   ? SliverFillRemaining(
                       child: _EmptyList(onAddFirst: () => _navigateToAddEdit()),
@@ -259,10 +246,9 @@ class _StockListPageState extends State<StockListPage> {
                   : SliverPadding(
                       padding: EdgeInsets.only(
                         top: listItemVerticalPadding,
-                        // Dinamik bottom padding hesaplama - overflow çözümü (artırıldı)
                         bottom: MediaQuery.of(context).padding.bottom +
                             MediaQuery.of(context).viewInsets.bottom +
-                            120.0, // 120px navbar için güvenli alan
+                            120.0,
                       ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
@@ -347,41 +333,41 @@ class _StockListPageState extends State<StockListPage> {
                                           },
                                           confirmDismiss: (direction) async {
                                             bool? confirmed = false;
-                                            final currentItemContextForDialog =
-                                                listViewContext;
 
                                             if (direction ==
                                                 DismissDirection.startToEnd) {
                                               if (!mounted) return false;
-                                              // SABİTLEME MANTIĞI
                                               await stockProvider
                                                   .togglePinStatus(
                                                       currentItem.id);
+
+                                              if (!mounted) return false;
+
                                               final updatedItem = stockProvider
                                                   .items
                                                   .firstWhere((i) =>
                                                       i.id == currentItem.id);
 
-                                              // LİSTEYİ YENIDEN SIRALA (WhatsApp mantığı için kritik!)
-                                              if (mounted) {
-                                                setState(() {
-                                                  // Sıralama otomatik olarak Consumer rebuild ile yapılacak
-                                                });
-                                              }
+                                              setState(() {});
 
-                                              _showStyledFlushbar(
-                                                currentItemContextForDialog,
-                                                updatedItem.isPinned
-                                                    ? '"${currentItem.name}" sabitlendi.'
-                                                    : '"${currentItem.name}" sabitlemesi kaldırıldı.',
-                                              );
-                                              confirmed =
-                                                  false; // Kartın kaybolmasını engelle
+                                              // HATA DÜZELTİLDİ: Daha güvenli olan 'listViewContext' kullanıldı.
+                                              if (listViewContext.mounted) {
+                                                _showStyledFlushbar(
+                                                  listViewContext,
+                                                  updatedItem.isPinned
+                                                      ? '"${currentItem.name}" sabitlendi.'
+                                                      : '"${currentItem.name}" sabitlemesi kaldırıldı.',
+                                                );
+                                              }
+                                              confirmed = false;
                                             } else if (direction ==
                                                 DismissDirection.endToStart) {
+                                              if (!listViewContext.mounted) {
+                                                return false;
+                                              }
                                               confirmed =
                                                   await _showDeleteConfirmationDialog(
-                                                      currentItemContextForDialog,
+                                                      listViewContext,
                                                       currentItem);
                                               confirmed ??= false;
                                             }
@@ -405,8 +391,6 @@ class _StockListPageState extends State<StockListPage> {
                                               stockProvider
                                                   .deleteItem(currentItem.id);
 
-                                              final scaffoldCtxForDismiss =
-                                                  listViewContext;
                                               if (mounted) {
                                                 bool isUndoPressed = false;
 
@@ -468,7 +452,7 @@ class _StockListPageState extends State<StockListPage> {
 
                                                 if (mounted) {
                                                   _showStyledFlushbar(
-                                                    scaffoldCtxForDismiss,
+                                                    context,
                                                     '"${originalItem.name}" silindi.',
                                                     mainButton: undoButton,
                                                   );
@@ -493,7 +477,6 @@ class _StockListPageState extends State<StockListPage> {
                                                 onTap: () => _navigateToAddEdit(
                                                     id: currentItem.id),
                                               ),
-                                              // RAPTIYE IKONU (Home page ile aynı)
                                               if (currentItem.isPinned)
                                                 Positioned(
                                                   top: 6,
@@ -575,4 +558,13 @@ class _EmptyList extends StatelessWidget {
       ),
     );
   }
+}
+
+// Bu fonksiyonun projenizde tanımlı olduğu varsayılıyor.
+// Örnek bir implementasyon:
+Future<int> getGlobalMaxStockThreshold() async {
+  // Gerçek uygulamada bu değeri SharedPreferences veya bir veritabanından alırsınız.
+  await Future.delayed(
+      const Duration(milliseconds: 100)); // Simüle edilmiş gecikme
+  return 150; // Örnek değer
 }

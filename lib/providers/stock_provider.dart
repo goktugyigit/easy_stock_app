@@ -1,6 +1,6 @@
 // lib/providers/stock_provider.dart
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/stock_item.dart';
@@ -23,19 +23,23 @@ class StockProvider with ChangeNotifier {
   Future<void> fetchAndSetItems({bool forceFetch = false}) async {
     if (_isFetching || (!forceFetch && _hasFetchedOnce)) return;
     _isFetching = true;
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final List<String>? extractedData = prefs.getStringList(_storageKey);
       if (extractedData != null) {
-        _items = extractedData.map((itemJson) {
-          try {
-            return StockItem.fromMap(json.decode(itemJson));
-          } catch (e) {
-            debugPrint('Veri parse edilirken hata: $e');
-            return null;
-          }
-        }).where((item) => item != null).cast<StockItem>().toList();
+        _items = extractedData
+            .map((itemJson) {
+              try {
+                return StockItem.fromMap(json.decode(itemJson));
+              } catch (e) {
+                debugPrint('Veri parse edilirken hata: $e');
+                return null;
+              }
+            })
+            .where((item) => item != null)
+            .cast<StockItem>()
+            .toList();
       }
       _hasFetchedOnce = true;
     } catch (error) {
@@ -43,14 +47,17 @@ class StockProvider with ChangeNotifier {
       _items = [];
     } finally {
       _isFetching = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
   Future<void> _saveItemsToPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final List<String> itemsJsonList = _items.map((item) => json.encode(item.toMap())).toList();
+      final List<String> itemsJsonList =
+          _items.map((item) => json.encode(item.toMap())).toList();
       await prefs.setStringList(_storageKey, itemsJsonList);
     } catch (error) {
       debugPrint('Kaydetme hatası: $error');
@@ -72,9 +79,10 @@ class StockProvider with ChangeNotifier {
       } else {
         item.pinnedTimestamp = null;
       }
-      
-      debugPrint('Pin Durumu Değiştirildi: ${item.name}, Yeni Durum: ${item.isPinned}');
-      
+
+      debugPrint(
+          'Pin Durumu Değiştirildi: ${item.name}, Yeni Durum: ${item.isPinned}');
+
       notifyListeners();
       await _saveItemsToPrefs();
     }
@@ -153,7 +161,7 @@ class StockProvider with ChangeNotifier {
     final itemIndex = _items.indexWhere((item) => item.id == id);
     if (itemIndex >= 0) {
       final originalItem = _items[itemIndex];
-      
+
       final updatedItem = StockItem(
         id: id,
         name: name,

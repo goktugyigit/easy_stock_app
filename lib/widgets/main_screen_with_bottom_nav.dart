@@ -1,4 +1,3 @@
-// lib/widgets/main_screen_with_bottom_nav.dart
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
@@ -8,6 +7,17 @@ import '../screens/warehouses_shops_page.dart';
 import '../screens/wallet_page.dart';
 import '../screens/home_settings_page.dart';
 import '../utils/app_theme.dart';
+
+// Projenizin linter kurallarına uyum sağlamak için bu Color extension'ının
+// projenizde tanımlı olduğu varsayılıyor.
+extension ColorValues on Color {
+  Color withValues({double? alpha}) {
+    if (alpha != null) {
+      return withAlpha((alpha * 255).round().clamp(0, 255));
+    }
+    return this;
+  }
+}
 
 // Her bir sekme için Navigator anahtarları
 final GlobalKey<NavigatorState> _homeNavigatorKey = GlobalKey<NavigatorState>();
@@ -21,6 +31,11 @@ final GlobalKey<NavigatorState> _settingsNavigatorKey =
 
 class MainScreenWithBottomNav extends StatefulWidget {
   final int initialSelectedIndex;
+
+  // DÜZELTME: Sabitler buraya, yani widget'ın kendisine taşındı.
+  // Bu sayede projenin diğer dosyalarından erişilebilir hale geldiler.
+  static const double navBarHeight = 70.0;
+  static const double navBarBottomMargin = 25.0;
 
   const MainScreenWithBottomNav({super.key, this.initialSelectedIndex = 0});
 
@@ -144,10 +159,6 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
     }
   }
 
-  // Navbar yüksekliği - o beğendiğin boyut
-  static const double navBarHeight = 70.0;
-  static const double navBarBottomMargin = 25.0;
-
   @override
   Widget build(BuildContext context) {
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
@@ -187,7 +198,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
           margin: EdgeInsets.only(
             left: navBarHorizontalMargin,
             right: navBarHorizontalMargin,
-            bottom: navBarBottomMargin + bottomPadding,
+            bottom: MainScreenWithBottomNav.navBarBottomMargin + bottomPadding,
             top: 8.0,
           ),
           child: ClipRRect(
@@ -195,7 +206,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: Container(
-                height: navBarHeight,
+                height: MainScreenWithBottomNav.navBarHeight,
                 decoration: BoxDecoration(
                   // O beğendiğin modern koyu gradient!
                   gradient: LinearGradient(
@@ -261,7 +272,7 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
           ]),
           builder: (context, child) {
             return SizedBox(
-              height: navBarHeight,
+              height: MainScreenWithBottomNav.navBarHeight,
               child: Center(
                 child: Stack(
                   alignment: Alignment.center,
@@ -320,8 +331,6 @@ class _MainScreenWithBottomNavState extends State<MainScreenWithBottomNav>
                               ),
                       ),
                     ),
-
-                    // İç daire kaldırıldı - sadece dış pulse efekti kalacak
                   ],
                 ),
               ),

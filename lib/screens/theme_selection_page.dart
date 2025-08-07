@@ -184,7 +184,7 @@ class _ThemeSelectionPageState extends State<ThemeSelectionPage> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.3),
+                          .withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(

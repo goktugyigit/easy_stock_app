@@ -1,5 +1,6 @@
 // lib/providers/customer_provider.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/customer.dart';
@@ -65,12 +66,14 @@ class CustomerProvider with ChangeNotifier {
         _customers = [];
       }
     } catch (error) {
-      print('Cari yükleme hatası: $error');
+      debugPrint('Cari yükleme hatası: $error');
       _customers = [];
     }
 
     _isLoading = false;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   // Carileri kaydet
@@ -81,7 +84,7 @@ class CustomerProvider with ChangeNotifier {
           json.encode(_customers.map((c) => c.toJson()).toList());
       await prefs.setString(_customersKey, customersData);
     } catch (error) {
-      print('Cari kaydetme hatası: $error');
+      debugPrint('Cari kaydetme hatası: $error');
       throw Exception('Cari kaydetme işlemi başarısız oldu');
     }
   }
@@ -165,7 +168,7 @@ class CustomerProvider with ChangeNotifier {
       await _saveCustomers();
       notifyListeners();
     } catch (error) {
-      print('Cari ekleme hatası: $error');
+      debugPrint('Cari ekleme hatası: $error');
       throw Exception('Cari ekleme işlemi başarısız oldu');
     }
   }
@@ -207,7 +210,7 @@ class CustomerProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (error) {
-      print('Cari güncelleme hatası: $error');
+      debugPrint('Cari güncelleme hatası: $error');
       throw Exception('Cari güncelleme işlemi başarısız oldu');
     }
   }
@@ -219,7 +222,7 @@ class CustomerProvider with ChangeNotifier {
       await _saveCustomers();
       notifyListeners();
     } catch (error) {
-      print('Cari silme hatası: $error');
+      debugPrint('Cari silme hatası: $error');
       throw Exception('Cari silme işlemi başarısız oldu');
     }
   }
@@ -276,7 +279,7 @@ class CustomerProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (error) {
-      print('Bakiye güncelleme hatası: $error');
+      debugPrint('Bakiye güncelleme hatası: $error');
       throw Exception('Bakiye güncelleme işlemi başarısız oldu');
     }
   }
@@ -288,7 +291,7 @@ class CustomerProvider with ChangeNotifier {
       await _saveCustomers();
       notifyListeners();
     } catch (error) {
-      print('Cari temizleme hatası: $error');
+      debugPrint('Cari temizleme hatası: $error');
       throw Exception('Cari temizleme işlemi başarısız oldu');
     }
   }
@@ -346,7 +349,7 @@ class CustomerProvider with ChangeNotifier {
       await _saveCustomers();
       notifyListeners();
     } catch (error) {
-      print('Örnek veri ekleme hatası: $error');
+      debugPrint('Örnek veri ekleme hatası: $error');
       throw Exception('Örnek veri ekleme işlemi başarısız oldu');
     }
   }

@@ -1,6 +1,6 @@
 // lib/providers/sale_provider.dart
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sale_item.dart';
@@ -22,24 +22,32 @@ class SaleProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey(_storageKey)) {
       _sales = [];
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return;
     }
     final List<String>? extractedData = prefs.getStringList(_storageKey);
     if (extractedData == null || extractedData.isEmpty) {
       _sales = [];
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return;
     }
     _sales = extractedData
-        .map((itemJson) => SaleItem.fromMap(json.decode(itemJson) as Map<String, dynamic>))
+        .map((itemJson) =>
+            SaleItem.fromMap(json.decode(itemJson) as Map<String, dynamic>))
         .toList();
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   Future<void> _saveItemsToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> itemsJsonList = _sales.map((item) => json.encode(item.toMap())).toList();
+    final List<String> itemsJsonList =
+        _sales.map((item) => json.encode(item.toMap())).toList();
     await prefs.setStringList(_storageKey, itemsJsonList);
   }
 
@@ -58,6 +66,7 @@ class SaleProvider with ChangeNotifier {
     _sales = List.from(_sales)..add(newSale);
     notifyListeners();
     _saveItemsToPrefs();
-    debugPrint("${newSale.quantitySold} adet ${newSale.soldStockItem.name} satıldı.");
+    debugPrint(
+        "${newSale.quantitySold} adet ${newSale.soldStockItem.name} satıldı.");
   }
 }

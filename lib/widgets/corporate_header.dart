@@ -1,6 +1,17 @@
+// lib/widgets/corporate_header.dart - ULTRA PROFESYONEL TASARIM
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../utils/app_theme.dart';
+
+extension ColorValues on Color {
+  Color withValues({double? alpha}) {
+    if (alpha != null) {
+      return withAlpha((alpha * 255).round().clamp(0, 255));
+    }
+    return this;
+  }
+}
 
 class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -15,8 +26,6 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isSearchFocused;
   final String searchHint;
   final List<Widget>? additionalActions;
-
-  // Yeni parametreler
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final bool showSaveButton;
@@ -52,458 +61,198 @@ class CorporateHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        // Siyah arka plan - theme'e uyumlu
         color: AppTheme.appBackgroundColor,
-        // Subtle shadow for depth
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        border: Border(
+          bottom:
+              BorderSide(color: Colors.grey.withValues(alpha: 0.2), width: 0.5),
+        ),
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Overflow önlemek için
-          children: [
-            // SEARCH VE ACTION BUTTONS AREA
-            if (showSearchBar)
-              _buildSearchWithActionsSection(context)
-            else
-              _buildRegularHeader(context),
-          ],
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: showSearchBar
+              ? _buildSearchWithActionsSection(context)
+              : _buildRegularHeader(context),
         ),
       ),
     );
   }
 
-  // Kurumsal Brand Header - En üst kısım
-  Widget _buildCorporateBrandHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        // Premium brand area gradient
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.15),
-            AppTheme.accentColor.withValues(alpha: 0.1),
-            Colors.purple.withValues(alpha: 0.08),
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: AppTheme.primaryColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Ana brand bilgisi
-          Row(
-            children: [
-              // Premium Logo
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFFFD700), // Gold
-                      const Color(0xFFFFA500), // Orange
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded, // AI/Premium icon
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Brand name ve açıklama
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Ana brand
-                    Row(
-                      children: [
-                        Text(
-                          'Bee Hesap',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          width: 2,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                        Text(
-                          'Pro',
-                          style: TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-
-                    // Service description - küçük yazı
-                    Text(
-                      'Yapay Zeka Destekli Ön Muhasebe, Stok Takip, Operasyonel Yönetim, Analiz',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Poppins',
-                        height: 1.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-
-              // (additionalActions kaldırıldı - header üzerinde buton yok)
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Search ve Action buttons section - Butonlar üstte
   Widget _buildSearchWithActionsSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 20.0, vertical: 8.0), // Daha da küçültüldü
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // Overflow önlemek için
-        children: [
-          // ACTION BUTTONS - Üstte ve daha küçük
-          if (showActionButtons) ...[
-            Row(
-              children: [
-                // QR Kod Tarama
-                Expanded(
-                  child: _buildCompactActionButton(
-                    icon: Icons.qr_code_rounded,
-                    label: 'QR Tara',
-                    onTap: onQRScan,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Barkod Tarama
-                Expanded(
-                  child: _buildCompactActionButton(
-                    icon: Icons.qr_code_scanner_rounded,
-                    label: 'Barkod',
-                    onTap: onBarcodeScan,
-                    color: AppTheme.accentColor,
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Gelişmiş Filtreleme
-                Expanded(
-                  child: _buildCompactActionButton(
-                    icon: Icons.tune_rounded,
-                    label: 'Filtre',
-                    onTap: onFilterTap,
-                    color: Colors.orange.shade400,
-                  ),
-                ),
-              ],
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Bu önemli - minimum boyut kullan
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Sayfa başlığı
+        SizedBox(
+          height: 40,
+          child: Center(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const SizedBox(height: 8),
-          ],
-
-          // iOS Style Search bar
-          Row(
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (showActionButtons) ...[
+          const SizedBox(height: 6), // 8'den 6'ya düşürüldü
+          _buildActionButtons(context),
+          const SizedBox(height: 10), // 12'den 10'a düşürüldü
+        ],
+        SizedBox(
+          height: 44,
+          child: Row(
             children: [
-              // iOS CupertinoSearchTextField
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    // iOS tarzı hafif gri arka plan
-                    color:
-                        const Color(0xFF1C1C1E), // iOS Dark Mode search color
-                    borderRadius:
-                        BorderRadius.circular(10), // iOS corner radius
-                  ),
-                  child: CupertinoSearchTextField(
-                    controller: searchController,
-                    focusNode: searchFocusNode,
-                    placeholder: searchHint,
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 14,
-                      fontFamily: 'Poppins',
-                    ),
-                    placeholderStyle: TextStyle(
-                      color: AppTheme.hintTextColor,
-                      fontSize: 13,
-                      fontFamily: 'Poppins',
-                    ),
-                    backgroundColor:
-                        Colors.transparent, // Container'da renk var
-                    borderRadius: BorderRadius.circular(10),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12.0,
-                      horizontal: 16.0,
-                    ),
-                    suffixIcon: isSearchFocused
-                        ? const Icon(CupertinoIcons.clear_circled_solid)
-                        : Icon(
-                            CupertinoIcons.qrcode_viewfinder,
-                            color: Colors.grey[400],
-                            size: 18,
-                          ),
-                    onSuffixTap: isSearchFocused ? null : onQRScan,
-                    prefixIcon: Icon(
-                      CupertinoIcons.search,
-                      color: Colors.grey[400],
-                      size: 18,
-                    ),
-                  ),
+                child: CupertinoSearchTextField(
+                  controller: searchController,
+                  focusNode: searchFocusNode,
+                  placeholder: searchHint,
+                  style: TextStyle(color: AppTheme.primaryTextColor),
+                  backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                  onSuffixTap: () {
+                    searchController?.clear();
+                  },
                 ),
               ),
-
-              // Vazgeç Butonu (Search Focus'ta)
               if (isSearchFocused) ...[
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: onSearchCancel,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.grey.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      'Vazgeç',
-                      style: TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Poppins',
-                      ),
+                const SizedBox(width: 8),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: onSearchCancel,
+                  child: const Text(
+                    'Vazgeç',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ],
+              ]
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // Regular header (diğer sayfalar için)
   Widget _buildRegularHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-          horizontal: 20.0, vertical: 12.0), // Küçültüldü
+    return SizedBox(
+      height: 56, // Standart AppBar yüksekliği
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Sol taraf - Geri butonu
           if (showBackButton)
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                color: AppTheme.primaryTextColor,
-                iconSize: 20,
-                onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
-                padding: EdgeInsets.zero,
-              ),
+            CupertinoButton(
+              padding: const EdgeInsets.only(right: 16),
+              onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 22),
             )
-          else
-            const SizedBox(width: 40), // Boş alan (ortalama için)
-
-          // Orta kısım - Başlık
+          else if (additionalActions == null &&
+              (showSaveButton || showAddButton))
+            const SizedBox(width: 48),
           Expanded(
-            child: Center(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                ),
-                textAlign: centerTitle ? TextAlign.center : TextAlign.left,
+            child: Text(
+              title,
+              textAlign: centerTitle ? TextAlign.center : TextAlign.start,
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-
-          // Sağ taraf - Kaydet veya Ekleme butonu
           if (showSaveButton)
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.check_rounded), // Güzel kaydet ikonu
-                color: AppTheme.primaryColor,
-                iconSize: 20,
-                onPressed: onSavePressed,
-                padding: EdgeInsets.zero,
-                tooltip: 'Kaydet',
-              ),
+            CupertinoButton(
+              padding: const EdgeInsets.only(left: 16),
+              onPressed: onSavePressed,
+              child: const Icon(Icons.check_rounded, size: 28),
             )
           else if (showAddButton)
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.add_rounded), // Güzel ekleme ikonu
-                color: AppTheme.primaryColor,
-                iconSize: 20,
-                onPressed: onAddPressed,
-                padding: EdgeInsets.zero,
-                tooltip: 'Yeni Ekle',
-              ),
+            CupertinoButton(
+              padding: const EdgeInsets.only(left: 16),
+              onPressed: onAddPressed,
+              child: const Icon(Icons.add_rounded, size: 28),
             )
-          else
-            const SizedBox(width: 40), // Boş alan (ortalama için)
+          else if (additionalActions != null)
+            Row(mainAxisSize: MainAxisSize.min, children: additionalActions!)
+          else if (showBackButton)
+            const SizedBox(width: 48),
         ],
       ),
     );
   }
 
-  // Kompakt Action Button - Küçük boyut
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildCompactActionButton(
+          icon: Icons.qr_code_scanner_rounded,
+          label: 'QR Tara',
+          onTap: onQRScan,
+          color: AppTheme.primaryColor,
+        ),
+        _buildCompactActionButton(
+          icon: CupertinoIcons.barcode_viewfinder,
+          label: 'Barkod',
+          onTap: onBarcodeScan,
+          color: AppTheme.accentColor,
+        ),
+        _buildCompactActionButton(
+          icon: Icons.tune_rounded,
+          label: 'Filtrele',
+          onTap: onFilterTap,
+          color: Colors.orange.shade400,
+        ),
+      ],
+    );
+  }
+
   Widget _buildCompactActionButton({
     required IconData icon,
     required String label,
     required VoidCallback? onTap,
     required Color color,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            vertical: 6, horizontal: 10), // Daha da küçültüldü
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: color.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
+    return CupertinoButton(
+      onPressed: onTap,
+      padding: const EdgeInsets.symmetric(
+          vertical: 2, horizontal: 6), // Padding azaltıldı
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 22), // 24'ten 22'ye küçültüldü
+          const SizedBox(height: 2), // 4'ten 2'ye küçültüldü
+          Text(
+            label,
+            style: TextStyle(
               color: color,
-              size: 18, // Küçültüldü
+              fontSize: 11, // 12'den 11'e küçültüldü
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 10, // Küçültüldü
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Size get preferredSize {
-    double height = 0;
-
-    // Status bar height
-    height += MediaQueryData.fromView(
-            WidgetsBinding.instance.platformDispatcher.views.first)
-        .padding
-        .top;
-
-    // Header kaldırıldı - artık yükseklik eklenmez
-
+    double height = 56;
     if (showSearchBar) {
-      // Search section height - Daha da küçültüldü
-      height += 50; // 55'den 50'ye
-
+      height = 44 + 48; // 44 (search) + 48 (title + spacing)
       if (showActionButtons) {
-        // Action buttons height - Daha da küçültüldü
-        height += 45; // 50'den 45'e
+        height += 66; // 72'den 66'ya düşürüldü (6+50+10=66)
       }
-    } else {
-      // Regular header height - artırıldı (overflow fix)
-      height += 60; // 35 -> 60 (25px ekstra)
     }
-
     return Size.fromHeight(height);
   }
 }

@@ -73,7 +73,7 @@ class CustomerDetailPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withValues(alpha: 0.3),
           offset: const Offset(0, 2),
           blurRadius: 10,
         ),
@@ -131,8 +131,7 @@ class CustomerDetailPage extends StatelessWidget {
                   builder: (_) => AddEditCustomerPage(customer: customer),
                 ),
               );
-              if (result != null && result.isNotEmpty) {
-                // mounted check is not needed in StatelessWidget's build method context
+              if (result != null && result.isNotEmpty && context.mounted) {
                 _showStyledFlushbar(context, result);
               }
             },
@@ -215,10 +214,10 @@ class CustomerDetailPage extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: Colors.blue.withOpacity(0.3)),
+                            border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.3)),
                           ),
                           child: Column(
                             children: [
@@ -249,10 +248,10 @@ class CustomerDetailPage extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: Colors.blue.withOpacity(0.3)),
+                            border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.3)),
                           ),
                           child: Column(
                             children: [
@@ -283,10 +282,10 @@ class CustomerDetailPage extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: Colors.red.withOpacity(0.3)),
+                            border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.3)),
                           ),
                           child: Column(
                             children: [

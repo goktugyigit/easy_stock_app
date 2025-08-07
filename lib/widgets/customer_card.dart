@@ -33,8 +33,8 @@ class CustomerCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(cardRadius),
               border: Border.all(
                 color: customer.isCustomer
-                    ? Colors.blue.withOpacity(0.5)
-                    : Colors.orange.withOpacity(0.5),
+                    ? Colors.blue.withValues(alpha: 0.5)
+                    : Colors.orange.withValues(alpha: 0.5),
                 width: 1.5,
               ),
             ),
@@ -121,8 +121,8 @@ class CustomerCard extends StatelessWidget {
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: customer.isCustomer
-                                  ? Colors.blue.withOpacity(0.2)
-                                  : Colors.orange.withOpacity(0.2),
+                                  ? Colors.blue.withValues(alpha: 0.2)
+                                  : Colors.orange.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(

@@ -1,4 +1,3 @@
-// lib/screens/create_sale_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +31,7 @@ class _CreateSalePageState extends State<CreateSalePage>
   int _quantity = 1;
   double _unitPrice = 0.0;
   double _discountAmount = 0.0;
-  double _discountPercent = 0.0;
+  // HATA DÜZELTİLDİ: _discountPercent değişkeni kullanılmadığı için kaldırıldı.
   double _taxRate = 18.0; // KDV %18 varsayılan
   double _paidAmount = 0.0;
   bool _isLoading = false;
@@ -63,9 +62,9 @@ class _CreateSalePageState extends State<CreateSalePage>
     'Çek',
     'Senet'
   ];
-  final List<String> _documentTypes = ['Fatura', 'İrsaliye', 'Fış'];
+  final List<String> _documentTypes = ['Fatura', 'İrsaliye', 'Fiş'];
   final List<String> _taxTypes = ['KDV', 'ÖTV', 'Vergisiz'];
-  final List<String> _paymentStatuses = ['Ödendi', 'Ödenmedi']; // Yeni eklendi
+  // HATA DÜZELTİLDİ: _paymentStatuses listesi kullanılmadığı için kaldırıldı.
   final Map<String, double> _taxRates = {
     'KDV': 18.0,
     'ÖTV': 25.0,
@@ -152,13 +151,9 @@ class _CreateSalePageState extends State<CreateSalePage>
     setState(() {
       _unitPrice = price;
       if (_isDiscountPercent) {
-        _discountPercent = discount;
         _discountAmount = (_unitPrice * _quantity * discount) / 100;
       } else {
         _discountAmount = discount;
-        _discountPercent = _unitPrice * _quantity > 0
-            ? (discount * 100) / (_unitPrice * _quantity)
-            : 0;
       }
     });
   }
@@ -363,6 +358,8 @@ class _CreateSalePageState extends State<CreateSalePage>
     _showMessage("$_selectedDocumentType oluşturuluyor...", Colors.blue);
     // Burada fatura/irsaliye oluşturma işlemi yapılır
     Future.delayed(const Duration(seconds: 2), () {
+      // HATA DÜZELTİLDİ: Asenkron işlem sonrası context kullanımı için 'mounted' kontrolü eklendi.
+      if (!mounted) return;
       Navigator.of(context).pop();
     });
   }
@@ -610,11 +607,11 @@ class _CreateSalePageState extends State<CreateSalePage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.inventory_2, color: Colors.blue, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'ÜRÜN BİLGİLERİ',
                       style: TextStyle(
                         color: Colors.white,
@@ -731,11 +728,11 @@ class _CreateSalePageState extends State<CreateSalePage>
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.attach_money, color: Colors.green, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'FİYAT BİLGİLERİ',
                       style: TextStyle(
                         color: Colors.white,
@@ -844,11 +841,11 @@ class _CreateSalePageState extends State<CreateSalePage>
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.receipt_long, color: Colors.orange, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'TUTAR ÖZETİ',
                       style: TextStyle(
                         color: Colors.white,
@@ -887,11 +884,11 @@ class _CreateSalePageState extends State<CreateSalePage>
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.payment, color: Colors.blue, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'ÖDEME DURUMU',
                       style: TextStyle(
                         color: Colors.white,
@@ -1027,11 +1024,11 @@ class _CreateSalePageState extends State<CreateSalePage>
               ),
               child: Column(
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       Icon(Icons.credit_card, color: Colors.green, size: 24),
-                      const SizedBox(width: 8),
-                      const Text(
+                      SizedBox(width: 8),
+                      Text(
                         'ÖDEME BİLGİLERİ',
                         style: TextStyle(
                           color: Colors.white,
@@ -1072,7 +1069,7 @@ class _CreateSalePageState extends State<CreateSalePage>
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.check_circle,
+                          const Icon(Icons.check_circle,
                               color: Colors.green, size: 20),
                           const SizedBox(width: 8),
                           Text(
@@ -1095,7 +1092,8 @@ class _CreateSalePageState extends State<CreateSalePage>
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.warning, color: Colors.orange, size: 20),
+                          const Icon(Icons.warning,
+                              color: Colors.orange, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             'Eksik Ödeme: ${(_grandTotal - _paidAmount).toStringAsFixed(2)} $_selectedCurrency',
@@ -1120,11 +1118,11 @@ class _CreateSalePageState extends State<CreateSalePage>
               ),
               child: Column(
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       Icon(Icons.schedule_send, color: Colors.red, size: 24),
-                      const SizedBox(width: 8),
-                      const Text(
+                      SizedBox(width: 8),
+                      Text(
                         'ÖDEME TAAHHÜDÜ',
                         style: TextStyle(
                           color: Colors.white,
@@ -1146,7 +1144,7 @@ class _CreateSalePageState extends State<CreateSalePage>
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info, color: Colors.red, size: 20),
+                        const Icon(Icons.info, color: Colors.red, size: 20),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -1182,11 +1180,11 @@ class _CreateSalePageState extends State<CreateSalePage>
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.description, color: Colors.purple, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'BELGE TİPİ',
                       style: TextStyle(
                         color: Colors.white,
@@ -1224,11 +1222,11 @@ class _CreateSalePageState extends State<CreateSalePage>
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.note_alt, color: Colors.teal, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'SATIŞ NOTLARI',
                       style: TextStyle(
                         color: Colors.white,
@@ -1496,7 +1494,7 @@ class _CreateSalePageState extends State<CreateSalePage>
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),
-            child: Icon(
+            child: const Icon(
               Icons.point_of_sale,
               color: Colors.blue,
               size: 28,
