@@ -196,57 +196,224 @@ class _ModernEmptyStateState extends State<ModernEmptyState>
   }
 
   Widget _buildActionButton(bool isLargeScreen) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF0EA5E9),
-            const Color(0xFF0284C7),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onButtonPressed,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isLargeScreen ? 32 : 28,
-              vertical: isLargeScreen ? 16 : 14,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: isLargeScreen ? 22 : 20,
+    return _CoolActionButton(
+      text: widget.buttonText,
+      onPressed: widget.onButtonPressed,
+      isLargeScreen: isLargeScreen,
+    );
+  }
+}
+
+class _CoolActionButton extends StatefulWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool isLargeScreen;
+
+  const _CoolActionButton({
+    required this.text,
+    required this.onPressed,
+    required this.isLargeScreen,
+  });
+
+  @override
+  State<_CoolActionButton> createState() => _CoolActionButtonState();
+}
+
+class _CoolActionButtonState extends State<_CoolActionButton>
+    with TickerProviderStateMixin {
+  late AnimationController _hoverController;
+  late AnimationController _pressController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _glowAnimation;
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _hoverController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _pressController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _hoverController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _glowAnimation = Tween<double>(
+      begin: 0.4,
+      end: 0.8,
+    ).animate(CurvedAnimation(
+      parent: _hoverController,
+      curve: Curves.easeOutCubic,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _hoverController.dispose();
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() => _isPressed = true);
+    _pressController.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    setState(() => _isPressed = false);
+    _pressController.reverse();
+  }
+
+  void _handleTapCancel() {
+    setState(() => _isPressed = false);
+    _pressController.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) {
+        setState(() => _isHovered = true);
+        _hoverController.forward();
+      },
+      onExit: (_) {
+        setState(() => _isHovered = false);
+        _hoverController.reverse();
+      },
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        onTapUp: _handleTapUp,
+        onTapCancel: _handleTapCancel,
+        onTap: widget.onPressed,
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_hoverController, _pressController]),
+          builder: (context, child) {
+            final scale =
+                _scaleAnimation.value * (1.0 - (_pressController.value * 0.05));
+
+            return Transform.scale(
+              scale: scale,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF00E5FF),
+                      const Color(0xFF0EA5E9),
+                      const Color(0xFF0284C7),
+                      const Color(0xFF0369A1),
+                    ],
+                    stops: const [0.0, 0.3, 0.7, 1.0],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00E5FF)
+                          .withValues(alpha: _glowAnimation.value * 0.4),
+                      blurRadius: 20 + (_hoverController.value * 5),
+                      offset: const Offset(0, 8),
+                      spreadRadius: 1 + (_hoverController.value * 1),
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
-                SizedBox(width: isLargeScreen ? 12 : 10),
-                Text(
-                  widget.buttonText,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isLargeScreen ? 16 : 15,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(
+                          alpha: 0.3 + (_hoverController.value * 0.2)),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.onPressed,
+                      borderRadius: BorderRadius.circular(24),
+                      splashColor: Colors.white.withValues(alpha: 0.3),
+                      highlightColor: Colors.white.withValues(alpha: 0.1),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: widget.isLargeScreen ? 40 : 36,
+                          vertical: widget.isLargeScreen ? 20 : 18,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Text
+                            Text(
+                              widget.text,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: widget.isLargeScreen ? 18 : 17,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.4,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withValues(alpha: 0.4),
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: widget.isLargeScreen ? 12 : 10),
+                            // Arrow icon with transparent container
+                            Transform.translate(
+                              offset: Offset(_hoverController.value * 4, 0),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  size: widget.isLargeScreen ? 18 : 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
